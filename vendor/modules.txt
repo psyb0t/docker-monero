@@ -916,7 +916,7 @@ github.com/psyb0t/aichteeteapee/serbewr/middleware
 # github.com/psyb0t/commander v0.6.0
 ## explicit; go 1.26.9
 github.com/psyb0t/commander
-# github.com/psyb0t/common-go v0.3.1
+# github.com/psyb0t/common-go v0.8.0
 ## explicit; go 1.26
 github.com/psyb0t/common-go/errors
 # github.com/psyb0t/ctxerrors v0.9.0
