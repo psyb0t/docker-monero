@@ -1,65 +1,69 @@
+// Package commonerrors re-exports the shared sentinel errors that now live in
+// github.com/psyb0t/ctxerrors/commerr. Prefer importing commerr directly; these
+// aliases keep existing imports working and reference the SAME error values, so
+// errors.Is holds across both import paths.
 package commonerrors
 
-import "errors"
+import "github.com/psyb0t/ctxerrors/commerr"
 
 var (
 	// Configuration & Environment errors
-	ErrEnvVarNotSet              = errors.New("env var is not set")
-	ErrRequiredConfigValueNotSet = errors.New("required config value is not set")
-	ErrEmptyMigrationsPath       = errors.New("migrations path is empty")
+	ErrEnvVarNotSet              = commerr.ErrEnvVarNotSet
+	ErrRequiredConfigValueNotSet = commerr.ErrRequiredConfigValueNotSet
+	ErrEmptyMigrationsPath       = commerr.ErrEmptyMigrationsPath
 
 	// File & Path errors
-	ErrFileInvalid           = errors.New("invalid file")
-	ErrFileNotFound          = errors.New("file not found")
-	ErrPathIsRequired        = errors.New("path is required")
-	ErrCouldNotDownloadFiles = errors.New("could not download files")
+	ErrFileInvalid           = commerr.ErrFileInvalid
+	ErrFileNotFound          = commerr.ErrFileNotFound
+	ErrPathIsRequired        = commerr.ErrPathIsRequired
+	ErrCouldNotDownloadFiles = commerr.ErrCouldNotDownloadFiles
 
 	// Validation & Input errors
-	ErrInvalidArgument  = errors.New("invalid argument")
-	ErrInvalidValue     = errors.New("invalid value")
-	ErrTargetNotPointer = errors.New("target is not a pointer")
-	ErrCouldNotDecode   = errors.New("could not decode")
+	ErrInvalidArgument  = commerr.ErrInvalidArgument
+	ErrInvalidValue     = commerr.ErrInvalidValue
+	ErrTargetNotPointer = commerr.ErrTargetNotPointer
+	ErrCouldNotDecode   = commerr.ErrCouldNotDecode
 
 	// Field & Data errors
-	ErrNilOutput                      = errors.New("output is nil")
-	ErrNilField                       = errors.New("field is nil")
-	ErrRequiredFieldNotSet            = errors.New("required field is not set")
-	ErrRequiredLLMResponseFieldNotSet = errors.New("required llm response field is not set")
-	ErrAlreadyExists                  = errors.New("already exists")
+	ErrNilOutput                      = commerr.ErrNilOutput
+	ErrNilField                       = commerr.ErrNilField
+	ErrRequiredFieldNotSet            = commerr.ErrRequiredFieldNotSet
+	ErrRequiredLLMResponseFieldNotSet = commerr.ErrRequiredLLMResponseFieldNotSet
+	ErrAlreadyExists                  = commerr.ErrAlreadyExists
 
 	// Job & Process errors
-	ErrJobFailed                 = errors.New("job failed")
-	ErrUnexpectedNumberOfResults = errors.New("unexpected number of results")
-	ErrNotFound                  = errors.New("not found")
+	ErrJobFailed                 = commerr.ErrJobFailed
+	ErrUnexpectedNumberOfResults = commerr.ErrUnexpectedNumberOfResults
+	ErrNotFound                  = commerr.ErrNotFound
 
 	// Operation errors
-	ErrFetchFailed     = errors.New("fetch failed")
-	ErrParseFailed     = errors.New("parse failed")
-	ErrWriteFailed     = errors.New("write failed")
-	ErrPublishFailed   = errors.New("publish failed")
-	ErrSubscribeFailed = errors.New("subscribe failed")
-	ErrDownloadFailed  = errors.New("download failed")
-	ErrUploadFailed    = errors.New("upload failed")
-	ErrUpsertFailed    = errors.New("upsert failed")
-	ErrDeleteFailed    = errors.New("delete failed")
-	ErrConnectFailed   = errors.New("connect failed")
-	ErrBrowseFailed    = errors.New("browse failed")
-	ErrSeedFailed      = errors.New("seed failed")
-	ErrMigrationFailed = errors.New("migration failed")
-	ErrUnmarshalFailed = errors.New("unmarshal failed")
-	ErrMarshalFailed   = errors.New("marshal failed")
+	ErrFetchFailed     = commerr.ErrFetchFailed
+	ErrParseFailed     = commerr.ErrParseFailed
+	ErrWriteFailed     = commerr.ErrWriteFailed
+	ErrPublishFailed   = commerr.ErrPublishFailed
+	ErrSubscribeFailed = commerr.ErrSubscribeFailed
+	ErrDownloadFailed  = commerr.ErrDownloadFailed
+	ErrUploadFailed    = commerr.ErrUploadFailed
+	ErrUpsertFailed    = commerr.ErrUpsertFailed
+	ErrDeleteFailed    = commerr.ErrDeleteFailed
+	ErrConnectFailed   = commerr.ErrConnectFailed
+	ErrBrowseFailed    = commerr.ErrBrowseFailed
+	ErrSeedFailed      = commerr.ErrSeedFailed
+	ErrMigrationFailed = commerr.ErrMigrationFailed
+	ErrUnmarshalFailed = commerr.ErrUnmarshalFailed
+	ErrMarshalFailed   = commerr.ErrMarshalFailed
 
 	// Process State errors
-	ErrFailed       = errors.New("failed")
-	ErrTimeout      = errors.New("timeout")
-	ErrTerminated   = errors.New("terminated")
-	ErrKilled       = errors.New("killed")
-	ErrClosing      = errors.New("closing")
-	ErrShuttingDown = errors.New("shutting down")
-	ErrCancelled    = errors.New("cancelled")
+	ErrUnavailable  = commerr.ErrUnavailable
+	ErrFailed       = commerr.ErrFailed
+	ErrTimeout      = commerr.ErrTimeout
+	ErrTerminated   = commerr.ErrTerminated
+	ErrKilled       = commerr.ErrKilled
+	ErrClosing      = commerr.ErrClosing
+	ErrShuttingDown = commerr.ErrShuttingDown
+	ErrCancelled    = commerr.ErrCancelled
 
-	// API & HTTP errors
-	ErrUnexpectedHTTPStatusCode = errors.New("unexpected http status code")
-	ErrNotAuthenticated         = errors.New("not authenticated")
-	ErrRateLimited              = errors.New("rate limited")
+	// Access & rate-limit errors
+	ErrNotAuthenticated = commerr.ErrNotAuthenticated
+	ErrRateLimited      = commerr.ErrRateLimited
 )
