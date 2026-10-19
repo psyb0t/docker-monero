@@ -9,7 +9,7 @@ require (
 	github.com/modelcontextprotocol/go-sdk v1.8.0
 	github.com/oapi-codegen/runtime v1.7.0
 	github.com/prometheus/client_golang v1.14.0
-	github.com/prometheus/client_model v0.3.0
+	github.com/prometheus/client_model v0.6.3
 	github.com/psyb0t/aichteeteapee v1.16.0
 	github.com/psyb0t/commander v0.6.0
 	github.com/psyb0t/common-go v0.3.1
@@ -279,7 +279,7 @@ require (
 	golang.org/x/tools v0.49.0 // indirect
 	golang.org/x/tools/gopls v0.21.1 // indirect
 	golang.org/x/vuln v1.6.0 // indirect
-	google.golang.org/protobuf v1.36.11 // indirect
+	google.golang.org/protobuf v1.36.12 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	honnef.co/go/tools v0.7.0-0.dev.0.20251022135355-8273271481d0 // indirect
 	mvdan.cc/gofumpt v0.9.2 // indirect
