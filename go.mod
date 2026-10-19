@@ -13,7 +13,7 @@ require (
 	github.com/psyb0t/aichteeteapee v1.16.0
 	github.com/psyb0t/commander v0.6.0
 	github.com/psyb0t/common-go v0.3.1
-	github.com/psyb0t/ctxerrors v0.7.1
+	github.com/psyb0t/ctxerrors v0.9.0
 	github.com/psyb0t/ctxscope v1.0.3
 	github.com/psyb0t/goenv v1.0.10
 	github.com/psyb0t/gonfiguration v1.6.4
