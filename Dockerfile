@@ -110,8 +110,6 @@ ENV DOCKER_MONERO_HTTP_LISTEN_ADDRESS=0.0.0.0:8080 \
     RUNNER_SHUTDOWNTIMEOUT=170s \
     LOG_FORMAT=json
 
-VOLUME ["/data"]
-
 # 18080 P2P, 18089 restricted RPC for wallets such as Cake Wallet, 8080 the
 # API and MCP, 9091 Prometheus. Unrestricted RPC (18081) stays on the
 # container's loopback and is never exposed.

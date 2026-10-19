@@ -1,6 +1,6 @@
 {
   "name": "monero",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Monero node and wallets over REST and MCP: sync state, blocks, transactions, wallet balances and addresses, and transfers.",
   "author": { "name": "psyb0t", "url": "https://github.com/psyb0t" },
   "homepage": "https://github.com/psyb0t/docker-monero",

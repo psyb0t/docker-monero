@@ -8,14 +8,14 @@
 #               like). Only root-level and docs/ markdown is dropped below.
 
 # Git / CI metadata. The build embeds no commit id, so nothing here is needed.
-.git
-.github
+/.git
+/.github
 
 # Docs. `*.md` does not cross a `/`, so this is root-level only, and the whole
 # root docs/ tree goes with it. Markdown deeper in the source tree stays, since
 # a package may embed it.
-*.md
-docs/
+/*.md
+/docs/
 
 # Local secrets / env
 .env
@@ -23,17 +23,17 @@ docs/
 !.env.example
 
 # Local tooling that must never enter an image
-git-update.sh
-.agents/
+/git-update.sh
+/.agents/
 
 # Build output, coverage, logs, debug artifacts
-build/
-coverage.*
-coverage-percent.txt
-.cover/
-*.log
-*.out
-__debug_*
+/build/
+/coverage.*
+/coverage-percent.txt
+/.cover/
+/*.log
+/*.out
+/__debug_*
 
 # Editor / IDE
 .vscode
@@ -44,16 +44,16 @@ __debug_*
 .testing/
 .logs/
 .agent_notes/
-.backup
+/.backup
 .research_files
-scripts/.post-update-temp
+/scripts/.post-update-temp
 __pycache__
 
 # Local runtime state. The image gets an empty /data volume, never a copy of
 # whatever the developer's last run left on disk.
-data/
+/data/
 *.sqlite
 *.sqlite-shm
 *.sqlite-wal
-sec.sarif
+/sec.sarif
 .plan/

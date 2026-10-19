@@ -44,7 +44,7 @@ If your MCP client supports remote Streamable HTTP servers, you do not need this
 
 ## Permissions and state
 
-The bridge stores nothing. It runs on your host, starts one `mcp-remote` child process, and sends the token to `MONERO_URL` as an `Authorization` header, passed as a command-line argument to that child. The pinned `mcp-remote` also prints its custom headers, the token included, to stderr at startup, so keep the bridge's stderr out of shared logs. Every tool input goes to the same URL too, wallet passwords included. Point it only at an instance you run, over loopback or HTTPS. The server keeps the chain and the wallet files in its own `/data` volume.
+The bridge stores nothing. It runs on your host, starts one `mcp-remote` child process, and sends the token to `MONERO_URL` as an `Authorization` header, passed as a command-line argument to that child. The pinned `mcp-remote` also prints its custom headers, the token included, to stderr at startup, so keep the bridge's stderr out of shared logs. Every tool input goes to the same URL too, wallet passwords included. Point it only at an instance you run, over loopback or HTTPS. The server keeps the chain and the wallet files in `/data` inside the container, which you bind-mount from a host directory using `DOCKER_MONERO_DATA_PATH` (default `./data`) in Compose.
 
 ## License
 

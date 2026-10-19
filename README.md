@@ -44,7 +44,9 @@ For mainnet, use the compose file:
 ```bash
 curl -LO https://raw.githubusercontent.com/psyb0t/docker-monero/main/docker-compose.yml
 curl -L -o .env https://raw.githubusercontent.com/psyb0t/docker-monero/main/.env.example
-# set DOCKER_MONERO_API_TOKEN in .env, then:
+# Set DOCKER_MONERO_API_TOKEN in .env. For the default DOCKER_MONERO_DATA_PATH:
+mkdir -p ./data
+sudo chown 10001:10001 ./data
 docker compose up -d
 ```
 
@@ -111,7 +113,7 @@ This section is for using the service from an agent. To change this repository, 
 
 ## Configuration
 
-All settings are `DOCKER_MONERO_*` environment variables, listed with defaults in [docs/configuration.md](docs/configuration.md). The only required one is `DOCKER_MONERO_API_TOKEN`. Chain and wallets live in the `/data` volume; back up `/data/wallets`.
+All settings are `DOCKER_MONERO_*` environment variables, listed with defaults in [docs/configuration.md](docs/configuration.md). The only required one is `DOCKER_MONERO_API_TOKEN`. Compose mounts the host directory `DOCKER_MONERO_DATA_PATH` (default `./data`) at `/data`. It must be writable by UID/GID `10001`; back up its `wallets` subdirectory.
 
 Give the container time to stop: it saves every open wallet and lets monerod flush its database. Use `docker stop -t 180`; the compose file sets `stop_grace_period`.
 

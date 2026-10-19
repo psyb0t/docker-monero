@@ -21,7 +21,7 @@ info:
     and regtest mining, is then refused with 403 and code READ_ONLY. Opening
     and closing wallets stay available, because reading a wallet requires it
     to be open.
-  version: &specVersion 0.1.0
+  version: &specVersion 0.1.1
   license:
     name: WTFPL
     identifier: WTFPL

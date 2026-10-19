@@ -16,7 +16,7 @@ This service can spend money. These are the boundaries it keeps and the ones you
 ## What you have to do
 
 - **Do not publish 8080 to the internet.** Bind it to loopback and put a reverse proxy with TLS in front, or reach it over a tailnet. The token travels in a header, so plain HTTP across a network exposes it.
-- **Back up `/data/wallets`.** The `.keys` files are your wallets. Each is encrypted with its password; a lost password cannot be recovered. Keep the seeds offline too.
+- **Back up the host data directory's `wallets` subdirectory** (`./data/wallets` with the default `DOCKER_MONERO_DATA_PATH`). The `.keys` files are your wallets. Each is encrypted with its password; a lost password cannot be recovered. Keep the seeds offline too.
 - **Pick strong wallet passwords.** Anyone with the token and a wallet's password can open and spend it.
 - **Run read-only when you can.** Once the wallets you need exist, a watching deployment does not need writes.
 - **Treat the token like a private key.** Anyone holding it can open wallets whose passwords they know, create wallets, and send from open wallets unless transfers are disabled.

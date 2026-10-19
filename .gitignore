@@ -12,8 +12,8 @@ TODO.md
 WIP.md
 
 # Local release tooling
-git-update.sh
-git-update.sh.debot
+/git-update.sh
+/git-update.sh.debot
 
 # Secrets and local configuration
 .env
@@ -22,15 +22,15 @@ git-update.sh.debot
 !.env.example
 
 # Build and test artifacts
-build/
-coverage.txt
-coverage.out
-coverage-percent.txt
-profile.out
-.cover/
-.cover-run/
-htmlcov/
-sec.sarif
+/build/
+/coverage.txt
+/coverage.out
+/coverage-percent.txt
+/profile.out
+/.cover/
+/.cover-run/
+/htmlcov/
+/sec.sarif
 
 # Runtime state
 /data/
@@ -59,15 +59,15 @@ CLAUDE.local.md
 .logs/
 
 # Servicepack tooling state
-.backup
-scripts/.post-update-temp
+/.backup
+/scripts/.post-update-temp
 
 # Extra coverage artifacts produced by make test-coverage
-coverage.html
-coverage_covdata.txt
-coverage_merged.txt
-coverage_filtered.txt
-.log
+/coverage.html
+/coverage_covdata.txt
+/coverage_merged.txt
+/coverage_filtered.txt
+/.log
 __pycache__
 
 # Plans

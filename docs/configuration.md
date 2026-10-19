@@ -60,7 +60,7 @@ The service is built on [servicepack](https://github.com/psyb0t/servicepack), wh
 | `LOG_FORMAT` | `json` | `json` or `text`. monerod's and the wallet processes' output is forwarded into the same log, tagged with `child` and `stream`. |
 | `RUNNER_SHUTDOWNTIMEOUT` | `170s` | Whole-shutdown budget: draining the API, saving every open wallet, and monerod's flush. Give `docker stop` at least this long (`docker stop -t 180`, or `stop_grace_period` in compose). |
 
-## Ports and volumes
+## Ports and data directory
 
 | Port | Bound | Purpose |
 | --- | --- | --- |
@@ -69,6 +69,14 @@ The service is built on [servicepack](https://github.com/psyb0t/servicepack), wh
 | `18080` | public | Monero P2P |
 | `18089` | public if you want remote wallets | Restricted RPC |
 
-One volume, `/data`, holds the chain and the wallets. Plan for about 105 GiB pruned or 265 GiB full on mainnet as of late 2026, plus room to grow; monerod's documentation recommends an SSD.
+Compose bind-mounts the chosen host data directory at `/data`, with the chain in `monerod` and wallets in `wallets`. Plan for about 105 GiB pruned or 265 GiB full on mainnet as of late 2026, plus room to grow; monerod's documentation recommends an SSD.
 
-The image runs as UID/GID `10001`. A bind-mounted host directory must be writable by that user.
+`DOCKER_MONERO_DATA_PATH` is a Compose-level variable, not an application setting:
+
+| Variable | Default | What it does |
+| --- | --- | --- |
+| `DOCKER_MONERO_DATA_PATH` | `./data` | Host directory bind-mounted at `/data` for the chain and wallets. |
+
+The image runs as UID/GID `10001`. Create the host directory and make it writable by that user before starting Compose: `mkdir -p ./data && sudo chown 10001:10001 ./data` for the default path. Set a different path in `.env` and prepare that directory instead when needed.
+
+Before upgrading an existing deployment, stop it cleanly and copy the data out of its old Docker volume into the chosen host directory, preserving the `monerod` and `wallets` subdirectories. Ensure UID/GID `10001` can write there before restarting.

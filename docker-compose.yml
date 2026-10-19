@@ -23,7 +23,8 @@ services:
       - "18080:18080"
       - "18089:18089"
     volumes:
-      - monero-data:/data
+      # Host directory must be writable by UID/GID 10001.
+      - ${DOCKER_MONERO_DATA_PATH:-./data}:/data
     read_only: true
     tmpfs:
       - /tmp:size=64m,noexec,nosuid
@@ -59,6 +60,3 @@ services:
       options:
         max-size: "10m"
         max-file: "5"
-
-volumes:
-  monero-data:

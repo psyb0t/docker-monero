@@ -2,6 +2,11 @@
 
 All notable changes per release. Versions follow [semver](https://semver.org) pre-1.0 conventions: minor bumps may include breaking API changes, called out explicitly; patch bumps are docs, build, and fixes only.
 
+## v0.1.1
+
+- Data now lives in the host directory set by `DOCKER_MONERO_DATA_PATH` (default `./data`) instead of a Docker volume. The directory must be writable by UID/GID `10001`. Existing deployments must move their data out of the old volume before upgrading.
+- Fixed CI builds: v0.1.0's commit was missing `vendor/github.com/moby/moby/api/types/build` because an unanchored `build/` ignore pattern matched it. Root-only ignore patterns are now anchored.
+
 ## v0.1.0
 
 First release.

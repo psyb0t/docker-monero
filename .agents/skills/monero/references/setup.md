@@ -5,7 +5,7 @@ Install, configure and check a docker-monero instance. Read this only when the u
 ## What you need
 
 - Docker, and Docker Compose for the compose route.
-- Disk for the Monero chain, on a volume you keep. Pruned mode (the default) keeps about a third of the full chain. Choose before the first sync, because switching later means resyncing.
+- Disk for the Monero chain, in a host directory you keep. Pruned mode (the default) keeps about a third of the full chain. Choose before the first sync, because switching later means resyncing.
 - Memory. The compose file caps the container at 6 GiB, 4 CPUs and 1024 PIDs, and notes that syncing mainnet wants a few GiB.
 
 ## Install with Compose
@@ -18,6 +18,9 @@ cd docker-monero
 cp .env.example .env
 # Set DOCKER_MONERO_API_TOKEN in .env, at least 32 characters:
 openssl rand -hex 32
+# For the default DOCKER_MONERO_DATA_PATH=./data:
+mkdir -p ./data
+sudo chown 10001:10001 ./data
 docker compose up -d
 ```
 
@@ -27,12 +30,14 @@ docker compose up -d
 
 ```bash
 export DOCKER_MONERO_API_TOKEN="$(openssl rand -hex 32)"
+mkdir -p ./data
+sudo chown 10001:10001 ./data
 
 docker run -d --name monero --restart unless-stopped --stop-timeout 180 \
   -e DOCKER_MONERO_API_TOKEN \
   -p 127.0.0.1:8080:8080 -p 127.0.0.1:9091:9091 \
   -p 18080:18080 -p 18089:18089 \
-  -v monero-data:/data \
+  -v "$PWD/data:/data" \
   psyb0t/monero:latest
 ```
 
@@ -104,7 +109,7 @@ Every setting is a `DOCKER_MONERO_*` environment variable, read once at startup.
 
 ## Data
 
-`/data` is a volume. The chain is under `/data/monerod` and the wallets under `/data/wallets`, a directory private to the service user. Each wallet is a `<name>.keys` file plus a cache file, and the keys file is what makes the wallet exist. Back up `/data/wallets` and keep the wallet passwords separately.
+Compose mounts the host directory set by `DOCKER_MONERO_DATA_PATH` (default `./data`) at `/data`. This is a Compose-level variable, not an application setting. The host directory must be writable by UID/GID `10001`. The chain is under `/data/monerod` and the wallets under `/data/wallets`, a directory private to the service user. Each wallet is a `<name>.keys` file plus a cache file, and the keys file is what makes the wallet exist. Back up the host data directory's `wallets` subdirectory and keep the wallet passwords separately.
 
 ## Regtest
 
