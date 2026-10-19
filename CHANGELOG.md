@@ -6,6 +6,7 @@ All notable changes per release. Versions follow [semver](https://semver.org) pr
 
 - Data now lives in the host directory set by `DOCKER_MONERO_DATA_PATH` (default `./data`) instead of a Docker volume. The directory must be writable by UID/GID `10001`. Existing deployments must move their data out of the old volume before upgrading.
 - Fixed CI builds: v0.1.0's commit was missing `vendor/github.com/moby/moby/api/types/build` because an unanchored `build/` ignore pattern matched it. Root-only ignore patterns are now anchored.
+- Updated the servicepack framework to v1.10.1, which brings `ctxerrors` v0.9.0, `goenv` v1.0.11, `testify` v1.12.1, and a `make pkg-upgrade` that upgrades modules again.
 
 ## v0.1.0
 
