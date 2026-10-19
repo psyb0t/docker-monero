@@ -10,5 +10,5 @@ const (
 	MaxLabelLength    int    = 128
 	MaxListLimit      int    = 1000
 	MaxPasswordLength int    = 256
-	SpecVersion       string = "0.1.1"
+	SpecVersion       string = "0.1.2"
 )

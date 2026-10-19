@@ -2,6 +2,10 @@
 
 All notable changes per release. Versions follow [semver](https://semver.org) pre-1.0 conventions: minor bumps may include breaking API changes, called out explicitly; patch bumps are docs, build, and fixes only.
 
+## v0.1.2
+
+- Fixed the release pipeline's badge job on tag pushes. It looked for the coverage report in the tag's own run, which skips the tests, and failed. It now reads coverage from the default-branch run of the same commit, so the coverage and version badges update on every release.
+
 ## v0.1.1
 
 - Data now lives in the host directory set by `DOCKER_MONERO_DATA_PATH` (default `./data`) instead of a Docker volume. The directory must be writable by UID/GID `10001`. Existing deployments must move their data out of the old volume before upgrading.

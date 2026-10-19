@@ -87,13 +87,15 @@ jobs:
     uses: psyb0t/reusable-github-workflows/.github/workflows/release-workflow.yml@master
 
   release-badges:
-    needs: [release]
+    needs: [release, wait-for-default-branch]
     if: startsWith(github.ref, 'refs/tags/')
     permissions:
       contents: write
+      actions: read
     uses: psyb0t/reusable-github-workflows/.github/workflows/create-badges.yml@master
     with:
       coverage: true
+      coverage_run_id: ${{ needs.wait-for-default-branch.outputs.run_id }}
 
   # Publish the skill and the OpenClaw MCP bridge to ClawHub on tag pushes,
   # after the image they point at is promoted on Docker Hub.
