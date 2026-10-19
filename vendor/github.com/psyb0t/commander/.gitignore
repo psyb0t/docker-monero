@@ -1,0 +1,14 @@
+.vscode
+coverage.*
+coverage-percent.txt
+sec.sarif
+CLAUDE.md
+.test
+git-update.sh
+.research_files
+.testing/
+.agent_notes/
+.env
+.env.*
+!.env.example
+.telemetry/

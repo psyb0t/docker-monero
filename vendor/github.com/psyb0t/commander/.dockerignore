@@ -1,0 +1,29 @@
+# Build-context hygiene for Dockerfile.dev. The Makefile builds it from stdin,
+# so no context is sent; this file protects any other `docker build .` run.
+
+.git
+.github
+
+# Local secrets and env
+.env
+.env.*
+!.env.example
+
+# Local tooling that must never enter an image
+git-update.sh
+
+# Coverage, scan output, logs
+coverage.*
+coverage-percent.txt
+sec.sarif
+*.log
+*.out
+
+# Editor state
+.vscode
+.idea
+
+# Scratch and local state
+.telemetry/
+.testing/
+.research_files

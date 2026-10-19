@@ -1,0 +1,29 @@
+# Development image for make lint, test, test-coverage and sec. The workspace is
+# mounted at /work at run time, so nothing from the repo is copied in.
+# Pinned by digest because a tag is mutable. Bump deliberately.
+FROM golang:1.26.9-alpine@sha256:cdfd4fe2da6b225d8b40c6b7a105736e548e83ff56d5d8f9394446eeb5eb84e0
+
+# gcc and musl-dev are for go test -race, which needs cgo. procps provides the
+# ps(1) that TestCommander_ProcessGroupKilling shells out to (busybox ps lacks
+# -g and -p). python3 and pip are for semgrep.
+RUN apk add --no-cache \
+    bash \
+    gcc \
+    git \
+    jq \
+    make \
+    musl-dev \
+    procps \
+    python3 \
+    py3-pip
+
+# semgrep for the security scan (make sec).
+RUN pip install --break-system-packages --no-cache-dir semgrep==1.173.0
+
+ENV GOPROXY=https://proxy.golang.org,direct \
+    GOSUMDB=sum.golang.org \
+    GOTOOLCHAIN=local
+
+WORKDIR /work
+
+CMD ["make", "help"]

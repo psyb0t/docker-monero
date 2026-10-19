@@ -1,0 +1,23 @@
+{
+  "name": "monero",
+  "description": "Monero node and wallets over REST and MCP: sync state, blocks, transactions, wallet balances and addresses, and transfers.",
+  "author": { "name": "psyb0t", "url": "https://github.com/psyb0t" },
+  "homepage": "https://github.com/psyb0t/docker-monero",
+  "license": "WTFPL",
+  "keywords": ["monero", "xmr", "monerod", "wallet", "cryptocurrency", "mcp", "rest-api", "self-hosted"],
+  "userConfig": {
+    "monero_url": {
+      "type": "string",
+      "title": "docker-monero URL",
+      "description": "Base URL of your running docker-monero instance, for example http://localhost:8080. The REST API lives under /v1 and MCP at /mcp.",
+      "required": true
+    },
+    "monero_token": {
+      "type": "string",
+      "title": "docker-monero API token",
+      "description": "Bearer token, the value of DOCKER_MONERO_API_TOKEN on the server. Every API and MCP call needs it.",
+      "required": true,
+      "sensitive": true
+    }
+  }
+}

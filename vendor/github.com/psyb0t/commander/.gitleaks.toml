@@ -1,0 +1,23 @@
+title = "commander secret scanning"
+
+[extend]
+useDefault = true
+
+# gitleaks `dir` mode scans the working tree and does not honour .gitignore,
+# so gitignored local paths are named again here. Allowlisting is by path only,
+# never by regex on the matched text.
+[[allowlists]]
+description = "Gitignored local state and vendored dependencies"
+paths = [
+  '''(^|/)\.env(\..*)?$''',
+  '''(^|/)\.vscode(?:/|$)''',
+  '''(^|/)\.test(?:/|$)''',
+  '''(^|/)\.testing(?:/|$)''',
+  '''(^|/)\.research_files(?:/|$)''',
+  '''(^|/)\.agent_notes(?:/|$)''',
+  '''(^|/)coverage[^/]*$''',
+  '''(^|/)git-update\.sh$''',
+  '''(^|/)CLAUDE\.md$''',
+  # Third-party source reproduced verbatim by `go mod vendor`.
+  '''(^|/)vendor(?:/|$)''',
+]

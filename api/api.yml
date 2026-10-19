@@ -1,0 +1,1069 @@
+openapi: 3.1.0
+
+info:
+  title: docker-monero
+  description: >-
+    HTTP API in front of a Monero node and a pool of wallets.
+
+    The node endpoints read from the monerod this container runs. The wallet
+    endpoints manage wallets in the container's wallet directory: each open
+    wallet is served by its own monero-wallet-rpc process, opened and closed
+    through this API.
+
+    Amounts are strings of atomic units (1 XMR = 10^12 atomic units), because
+    JSON numbers lose precision above 2^53. Every amount also comes with an
+    XMR decimal string for display.
+
+    Every endpoint requires `Authorization: Bearer <token>`.
+
+    A deployment can run read-only (DOCKER_MONERO_READ_ONLY). Every write,
+    meaning creating or restoring a wallet, creating a subaddress, sending,
+    and regtest mining, is then refused with 403 and code READ_ONLY. Opening
+    and closing wallets stay available, because reading a wallet requires it
+    to be open.
+  version: &specVersion 0.1.0
+  license:
+    name: WTFPL
+    identifier: WTFPL
+
+servers:
+  - url: /v1
+    description: Version 1 of the API.
+
+# Values shared between this contract and the Go code. oapixconstgen turns
+# them into typed constants so a limit is never written twice.
+x-constants:
+  int:
+    defaultListLimit: &defaultListLimit 100
+    maxListLimit: &maxListLimit 1000
+    maxGenerateBlocks: &maxGenerateBlocks 1000
+    maxDestinations: &maxDestinations 16
+    maxLabelLength: &maxLabelLength 128
+    maxPasswordLength: &maxPasswordLength 256
+  string:
+    headerRequestID: X-Request-Id
+    # Anchored to info.version so the contract revision and the identity the
+    # MCP server reports cannot drift apart.
+    specVersion: *specVersion
+
+security:
+  - bearerAuth: []
+
+tags:
+  - name: node
+    description: Read the state of the Monero node.
+  - name: wallets
+    description: Create, open, close, and use wallets.
+
+paths:
+  /node/info:
+    get:
+      operationId: getNodeInfo
+      tags: [node]
+      summary: Node status and sync progress
+      responses:
+        '200':
+          description: Current node state.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/NodeInfo' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '503': { $ref: '#/components/responses/ServiceUnavailable' }
+
+  /node/blocks/latest:
+    get:
+      operationId: getLatestBlock
+      tags: [node]
+      summary: Header of the chain tip
+      responses:
+        '200':
+          description: The latest block header.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/BlockHeader' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '503': { $ref: '#/components/responses/ServiceUnavailable' }
+
+  /node/blocks/height/{height}:
+    get:
+      operationId: getBlockByHeight
+      tags: [node]
+      summary: Block header at a height
+      parameters:
+        - name: height
+          in: path
+          required: true
+          schema: { type: integer, format: int64, minimum: 0 }
+      responses:
+        '200':
+          description: The block header.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/BlockHeader' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '503': { $ref: '#/components/responses/ServiceUnavailable' }
+
+  /node/blocks/hash/{blockHash}:
+    get:
+      operationId: getBlockByHash
+      tags: [node]
+      summary: Block header by hash
+      parameters:
+        - $ref: '#/components/parameters/BlockHash'
+      responses:
+        '200':
+          description: The block header.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/BlockHeader' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '503': { $ref: '#/components/responses/ServiceUnavailable' }
+
+  /node/transactions/{txHash}:
+    get:
+      operationId: getTransaction
+      tags: [node]
+      summary: Look up a transaction by hash
+      parameters:
+        - $ref: '#/components/parameters/TxHash'
+      responses:
+        '200':
+          description: The transaction's chain status.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Transaction' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '503': { $ref: '#/components/responses/ServiceUnavailable' }
+
+  /node/fee-estimate:
+    get:
+      operationId: getFeeEstimate
+      tags: [node]
+      summary: Current fee estimate
+      responses:
+        '200':
+          description: Per-byte fees.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/FeeEstimate' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '503': { $ref: '#/components/responses/ServiceUnavailable' }
+
+  /node/mempool:
+    get:
+      operationId: getMempoolStats
+      tags: [node]
+      summary: Transaction pool statistics
+      responses:
+        '200':
+          description: Aggregate mempool statistics.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MempoolStats' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '503': { $ref: '#/components/responses/ServiceUnavailable' }
+
+  /node/regtest/generate-blocks:
+    post:
+      operationId: generateBlocks
+      tags: [node]
+      summary: Mine blocks (regtest only)
+      description: >-
+        Mines blocks instantly and pays the block rewards to an address.
+        Refused with 409 unless the container runs on regtest.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/GenerateBlocksRequest' }
+      responses:
+        '200':
+          description: The blocks were mined.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/GeneratedBlocks' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '503': { $ref: '#/components/responses/ServiceUnavailable' }
+
+  /wallets:
+    get:
+      operationId: listWallets
+      tags: [wallets]
+      summary: List wallets
+      description: Every wallet in the wallet directory and whether it is open.
+      responses:
+        '200':
+          description: The wallets.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/WalletList' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+    post:
+      operationId: createWallet
+      tags: [wallets]
+      summary: Create a wallet
+      description: Creates a new wallet file and leaves the wallet open.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CreateWalletRequest' }
+      responses:
+        '201':
+          description: The wallet was created and is open.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/WalletStatus' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '503': { $ref: '#/components/responses/ServiceUnavailable' }
+
+  /wallets/restore/seed:
+    post:
+      operationId: restoreWalletFromSeed
+      tags: [wallets]
+      summary: Restore a wallet from its mnemonic seed
+      description: >-
+        Writes a new wallet file from a 25-word seed and leaves it open. The
+        wallet scans the chain from restoreHeight, so set it as close to the
+        wallet's first transaction as you can.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/RestoreFromSeedRequest' }
+      responses:
+        '201':
+          description: The wallet was restored and is open.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/WalletStatus' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '503': { $ref: '#/components/responses/ServiceUnavailable' }
+
+  /wallets/restore/keys:
+    post:
+      operationId: restoreWalletFromKeys
+      tags: [wallets]
+      summary: Restore a wallet from its keys
+      description: >-
+        Writes a new wallet file from an address and private keys and leaves
+        it open. Omit spendKey to create a view-only wallet that can watch
+        incoming funds but never send.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/RestoreFromKeysRequest' }
+      responses:
+        '201':
+          description: The wallet was restored and is open.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/WalletStatus' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '503': { $ref: '#/components/responses/ServiceUnavailable' }
+
+  /wallets/{walletName}/open:
+    post:
+      operationId: openWallet
+      tags: [wallets]
+      summary: Open a wallet
+      parameters:
+        - $ref: '#/components/parameters/WalletName'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/OpenWalletRequest' }
+      responses:
+        '200':
+          description: The wallet is open.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/WalletStatus' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '503': { $ref: '#/components/responses/ServiceUnavailable' }
+
+  /wallets/{walletName}/close:
+    post:
+      operationId: closeWallet
+      tags: [wallets]
+      summary: Save and close a wallet
+      parameters:
+        - $ref: '#/components/parameters/WalletName'
+      responses:
+        '200':
+          description: The wallet was saved and closed.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/WalletStatus' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '500': { $ref: '#/components/responses/InternalServerError' }
+
+  /wallets/{walletName}/status:
+    get:
+      operationId: getWalletStatus
+      tags: [wallets]
+      summary: Wallet status and sync progress
+      description: >-
+        Whether the wallet is open and, when it is, how far it has scanned
+        compared with the node. A wallet that is behind is still syncing and
+        refuses to send.
+      parameters:
+        - $ref: '#/components/parameters/WalletName'
+      responses:
+        '200':
+          description: The wallet's status.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/WalletStatus' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /wallets/{walletName}/balance:
+    get:
+      operationId: getWalletBalance
+      tags: [wallets]
+      summary: Balance of one account
+      parameters:
+        - $ref: '#/components/parameters/WalletName'
+        - $ref: '#/components/parameters/AccountIndex'
+      responses:
+        '200':
+          description: The account balance.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Balance' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '503': { $ref: '#/components/responses/ServiceUnavailable' }
+
+  /wallets/{walletName}/addresses:
+    get:
+      operationId: listWalletAddresses
+      tags: [wallets]
+      summary: Addresses of one account
+      parameters:
+        - $ref: '#/components/parameters/WalletName'
+        - $ref: '#/components/parameters/AccountIndex'
+      responses:
+        '200':
+          description: The primary address and every subaddress.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AddressList' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '503': { $ref: '#/components/responses/ServiceUnavailable' }
+    post:
+      operationId: createWalletAddress
+      tags: [wallets]
+      summary: Create a subaddress
+      parameters:
+        - $ref: '#/components/parameters/WalletName'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CreateAddressRequest' }
+      responses:
+        '201':
+          description: The new subaddress.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Address' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '503': { $ref: '#/components/responses/ServiceUnavailable' }
+
+  /wallets/{walletName}/transfers:
+    get:
+      operationId: listWalletTransfers
+      tags: [wallets]
+      summary: Transfer history
+      description: >-
+        Incoming, outgoing, pending, failed, and pool transfers of one
+        account, newest first. Filter with `direction`; with none given,
+        every direction is returned.
+      parameters:
+        - $ref: '#/components/parameters/WalletName'
+        - $ref: '#/components/parameters/AccountIndex'
+        - name: direction
+          in: query
+          required: false
+          style: form
+          explode: true
+          schema:
+            type: array
+            items: { $ref: '#/components/schemas/TransferDirection' }
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/Offset'
+      responses:
+        '200':
+          description: One page of transfers.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/TransferList' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '503': { $ref: '#/components/responses/ServiceUnavailable' }
+    post:
+      operationId: sendTransfer
+      tags: [wallets]
+      summary: Send XMR
+      description: >-
+        Builds, signs, and broadcasts a transaction. With dryRun the
+        transaction is built and priced but never broadcast.
+
+        Refused with 409 while the node is not synchronized or the wallet is
+        behind it, and with 403 when the deployment disables transfers.
+      parameters:
+        - $ref: '#/components/parameters/WalletName'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/TransferRequest' }
+      responses:
+        '200':
+          description: The transaction was built, and broadcast unless dryRun.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/TransferResult' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '422': { $ref: '#/components/responses/UnprocessableEntity' }
+        '503': { $ref: '#/components/responses/ServiceUnavailable' }
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+
+  parameters:
+    WalletName:
+      name: walletName
+      in: path
+      required: true
+      description: Letters, digits, `_` and `-`, starting with a letter or digit.
+      schema: { $ref: '#/components/schemas/WalletName' }
+
+    AccountIndex:
+      name: accountIndex
+      in: query
+      required: false
+      schema: { type: integer, format: int64, minimum: 0, default: 0 }
+
+    BlockHash:
+      name: blockHash
+      in: path
+      required: true
+      schema: { $ref: '#/components/schemas/Hash' }
+
+    TxHash:
+      name: txHash
+      in: path
+      required: true
+      schema: { $ref: '#/components/schemas/Hash' }
+
+    Limit:
+      name: limit
+      in: query
+      required: false
+      schema:
+        type: integer
+        minimum: 1
+        maximum: *maxListLimit
+        default: *defaultListLimit
+
+    Offset:
+      name: offset
+      in: query
+      required: false
+      schema: { type: integer, minimum: 0, default: 0 }
+
+  schemas:
+    Error:
+      type: object
+      description: >-
+        The error envelope every failure uses. `code` is stable
+        UPPER_SNAKE_CASE and is the value a client switches on.
+      required: [code, message]
+      properties:
+        code: { type: string }
+        message: { type: string }
+        details: {}
+
+    WalletName:
+      type: string
+      pattern: '^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$'
+
+    Hash:
+      type: string
+      pattern: '^[0-9a-fA-F]{64}$'
+
+    AtomicAmount:
+      type: string
+      description: An amount in atomic units (1 XMR = 10^12).
+      pattern: '^[0-9]{1,20}$'
+
+    XMRAmount:
+      type: string
+      description: The same amount as an XMR decimal with twelve places.
+
+    Network:
+      type: string
+      enum: [mainnet, stagenet, testnet, regtest]
+
+    NodeInfo:
+      type: object
+      required:
+        - network
+        - height
+        - targetHeight
+        - synchronized
+        - busySyncing
+        - syncPercent
+        - offline
+        - difficulty
+        - txPoolSize
+        - outgoingConnections
+        - incomingConnections
+        - databaseSize
+        - version
+        - topBlockHash
+        - updateAvailable
+        - restricted
+        - restarts
+      properties:
+        network: { $ref: '#/components/schemas/Network' }
+        height:
+          type: integer
+          format: int64
+          description: Number of blocks the node has.
+        targetHeight:
+          type: integer
+          format: int64
+          description: >-
+            Height the node is syncing towards. Zero once the node considers
+            itself synced.
+        synchronized: { type: boolean }
+        busySyncing: { type: boolean }
+        syncPercent:
+          type: number
+          format: double
+          description: height / targetHeight as a percentage, 100 when synced.
+        offline: { type: boolean }
+        difficulty: { type: integer, format: int64 }
+        txPoolSize: { type: integer, format: int64 }
+        outgoingConnections: { type: integer, format: int64 }
+        incomingConnections: { type: integer, format: int64 }
+        databaseSize: { type: integer, format: int64 }
+        version: { type: string }
+        topBlockHash: { type: string }
+        startedAt: { type: string, format: date-time }
+        updateAvailable: { type: boolean }
+        restricted:
+          type: boolean
+          description: Whether the RPC answering this API is restricted.
+        restarts:
+          type: integer
+          format: int64
+          description: Times monerod crashed and was restarted since boot.
+
+    BlockHeader:
+      type: object
+      required:
+        - height
+        - hash
+        - prevHash
+        - timestamp
+        - majorVersion
+        - minorVersion
+        - difficulty
+        - reward
+        - rewardXmr
+        - blockSize
+        - blockWeight
+        - numTxes
+        - depth
+        - orphan
+        - minerTxHash
+      properties:
+        height: { type: integer, format: int64 }
+        hash: { type: string }
+        prevHash: { type: string }
+        timestamp: { type: string, format: date-time }
+        majorVersion: { type: integer }
+        minorVersion: { type: integer }
+        difficulty: { type: integer, format: int64 }
+        reward: { $ref: '#/components/schemas/AtomicAmount' }
+        rewardXmr: { $ref: '#/components/schemas/XMRAmount' }
+        blockSize: { type: integer, format: int64 }
+        blockWeight: { type: integer, format: int64 }
+        numTxes: { type: integer, format: int64 }
+        depth: { type: integer, format: int64 }
+        orphan: { type: boolean }
+        minerTxHash: { type: string }
+
+    Transaction:
+      type: object
+      required:
+        - txHash
+        - inPool
+        - confirmations
+        - doubleSpendSeen
+        - relayed
+      properties:
+        txHash: { type: string }
+        inPool: { type: boolean }
+        blockHeight:
+          type: integer
+          format: int64
+          description: Absent while the transaction is in the pool.
+        confirmations: { type: integer, format: int64 }
+        blockTimestamp: { type: string, format: date-time }
+        receivedAt:
+          type: string
+          format: date-time
+          description: When the node first saw a pool transaction.
+        doubleSpendSeen: { type: boolean }
+        relayed: { type: boolean }
+
+    FeeEstimate:
+      type: object
+      required: [feePerByte, quantizationMask, feesPerByte]
+      properties:
+        feePerByte: { $ref: '#/components/schemas/AtomicAmount' }
+        quantizationMask: { type: integer, format: int64 }
+        feesPerByte:
+          type: array
+          description: Per-byte fee for each priority, lowest first.
+          items: { $ref: '#/components/schemas/AtomicAmount' }
+
+    MempoolStats:
+      type: object
+      required:
+        - txCount
+        - bytesTotal
+        - feeTotal
+        - feeTotalXmr
+        - failing
+        - notRelayed
+        - doubleSpends
+      properties:
+        txCount: { type: integer, format: int64 }
+        bytesTotal: { type: integer, format: int64 }
+        feeTotal: { $ref: '#/components/schemas/AtomicAmount' }
+        feeTotalXmr: { $ref: '#/components/schemas/XMRAmount' }
+        oldestReceivedAt: { type: string, format: date-time }
+        failing: { type: integer, format: int64 }
+        notRelayed: { type: integer, format: int64 }
+        doubleSpends: { type: integer, format: int64 }
+
+    GenerateBlocksRequest:
+      type: object
+      required: [count, address]
+      properties:
+        count:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: *maxGenerateBlocks
+        address:
+          type: string
+          minLength: 1
+          description: Address that receives the block rewards.
+
+    GeneratedBlocks:
+      type: object
+      required: [height, blockHashes]
+      properties:
+        height:
+          type: integer
+          format: int64
+          description: Height of the last block mined.
+        blockHashes:
+          type: array
+          items: { type: string }
+
+    WalletSummary:
+      type: object
+      required: [name, open]
+      properties:
+        name: { $ref: '#/components/schemas/WalletName' }
+        open: { type: boolean }
+
+    WalletList:
+      type: object
+      required: [wallets, openCount, maxOpen]
+      properties:
+        wallets:
+          type: array
+          items: { $ref: '#/components/schemas/WalletSummary' }
+        openCount: { type: integer }
+        maxOpen: { type: integer }
+
+    WalletStatus:
+      type: object
+      required: [name, open]
+      properties:
+        name: { $ref: '#/components/schemas/WalletName' }
+        open: { type: boolean }
+        address:
+          type: string
+          description: Primary address. Present while the wallet is open.
+        openedAt: { type: string, format: date-time }
+        walletHeight:
+          type: integer
+          format: int64
+          description: Height the wallet has scanned up to.
+        nodeHeight:
+          type: integer
+          format: int64
+          description: Height of the node's chain.
+        nodeSynchronized: { type: boolean }
+        syncing:
+          type: boolean
+          description: >-
+            True while the wallet is behind the node or the node is still
+            syncing.
+        blocksBehind: { type: integer, format: int64 }
+        syncPercent:
+          type: number
+          format: double
+          description: walletHeight / nodeHeight as a percentage.
+
+    CreateWalletRequest:
+      type: object
+      required: [name, password]
+      properties:
+        name: { $ref: '#/components/schemas/WalletName' }
+        password: { $ref: '#/components/schemas/Password' }
+        language:
+          type: string
+          description: Mnemonic language. English when omitted.
+
+    RestoreFromSeedRequest:
+      type: object
+      required: [name, password, seed]
+      properties:
+        name: { $ref: '#/components/schemas/WalletName' }
+        password: { $ref: '#/components/schemas/Password' }
+        seed:
+          type: string
+          minLength: 1
+          description: The 25-word mnemonic, words separated by spaces.
+        seedOffset:
+          type: string
+          description: Optional passphrase that was used to offset the seed.
+        restoreHeight:
+          type: integer
+          format: int64
+          minimum: 0
+          default: 0
+        language: { type: string }
+
+    RestoreFromKeysRequest:
+      type: object
+      required: [name, password, address, viewKey]
+      properties:
+        name: { $ref: '#/components/schemas/WalletName' }
+        password: { $ref: '#/components/schemas/Password' }
+        address: { type: string, minLength: 1 }
+        viewKey: { type: string, minLength: 1 }
+        spendKey:
+          type: string
+          description: Omit for a view-only wallet.
+        restoreHeight:
+          type: integer
+          format: int64
+          minimum: 0
+          default: 0
+        language: { type: string }
+
+    OpenWalletRequest:
+      type: object
+      required: [password]
+      properties:
+        password: { $ref: '#/components/schemas/Password' }
+
+    Password:
+      type: string
+      description: >-
+        The wallet file's password. It may be empty, which leaves the wallet
+        file unencrypted beyond its default key derivation.
+      maxLength: *maxPasswordLength
+
+    SubaddressBalance:
+      type: object
+      required:
+        - addressIndex
+        - address
+        - label
+        - balance
+        - balanceXmr
+        - unlockedBalance
+        - unlockedBalanceXmr
+        - unspentOutputs
+        - blocksToUnlock
+      properties:
+        addressIndex: { type: integer, format: int64 }
+        address: { type: string }
+        label: { type: string }
+        balance: { $ref: '#/components/schemas/AtomicAmount' }
+        balanceXmr: { $ref: '#/components/schemas/XMRAmount' }
+        unlockedBalance: { $ref: '#/components/schemas/AtomicAmount' }
+        unlockedBalanceXmr: { $ref: '#/components/schemas/XMRAmount' }
+        unspentOutputs: { type: integer, format: int64 }
+        blocksToUnlock: { type: integer, format: int64 }
+
+    Balance:
+      type: object
+      required:
+        - accountIndex
+        - balance
+        - balanceXmr
+        - unlockedBalance
+        - unlockedBalanceXmr
+        - blocksToUnlock
+        - subaddresses
+      properties:
+        accountIndex: { type: integer, format: int64 }
+        balance: { $ref: '#/components/schemas/AtomicAmount' }
+        balanceXmr: { $ref: '#/components/schemas/XMRAmount' }
+        unlockedBalance:
+          $ref: '#/components/schemas/AtomicAmount'
+        unlockedBalanceXmr: { $ref: '#/components/schemas/XMRAmount' }
+        blocksToUnlock:
+          type: integer
+          format: int64
+          description: Blocks until the whole balance is spendable.
+        subaddresses:
+          type: array
+          items: { $ref: '#/components/schemas/SubaddressBalance' }
+
+    Address:
+      type: object
+      required: [address, addressIndex, label, used]
+      properties:
+        address: { type: string }
+        addressIndex: { type: integer, format: int64 }
+        label: { type: string }
+        used: { type: boolean }
+
+    AddressList:
+      type: object
+      required: [accountIndex, primaryAddress, addresses]
+      properties:
+        accountIndex: { type: integer, format: int64 }
+        primaryAddress: { type: string }
+        addresses:
+          type: array
+          items: { $ref: '#/components/schemas/Address' }
+
+    CreateAddressRequest:
+      type: object
+      properties:
+        accountIndex:
+          type: integer
+          format: int64
+          minimum: 0
+          default: 0
+        label:
+          type: string
+          maxLength: *maxLabelLength
+
+    TransferDirection:
+      type: string
+      enum: [in, out, pending, failed, pool]
+
+    TransferEntry:
+      type: object
+      required:
+        - txHash
+        - direction
+        - amount
+        - amountXmr
+        - fee
+        - feeXmr
+        - height
+        - timestamp
+        - confirmations
+        - locked
+        - address
+        - accountIndex
+        - subaddressIndex
+        - doubleSpendSeen
+      properties:
+        txHash: { type: string }
+        direction: { $ref: '#/components/schemas/TransferDirection' }
+        amount: { $ref: '#/components/schemas/AtomicAmount' }
+        amountXmr: { $ref: '#/components/schemas/XMRAmount' }
+        fee: { $ref: '#/components/schemas/AtomicAmount' }
+        feeXmr: { $ref: '#/components/schemas/XMRAmount' }
+        height:
+          type: integer
+          format: int64
+          description: Zero for pool and pending transfers.
+        timestamp: { type: string, format: date-time }
+        confirmations: { type: integer, format: int64 }
+        locked: { type: boolean }
+        address: { type: string }
+        accountIndex: { type: integer, format: int64 }
+        subaddressIndex: { type: integer, format: int64 }
+        paymentId: { type: string }
+        note: { type: string }
+        doubleSpendSeen: { type: boolean }
+
+    TransferList:
+      type: object
+      required: [transfers, total, limit, offset]
+      properties:
+        transfers:
+          type: array
+          items: { $ref: '#/components/schemas/TransferEntry' }
+        total: { type: integer }
+        limit: { type: integer }
+        offset: { type: integer }
+
+    Destination:
+      type: object
+      required: [address, amount]
+      properties:
+        address: { type: string, minLength: 1 }
+        amount: { $ref: '#/components/schemas/AtomicAmount' }
+
+    TransferPriority:
+      type: string
+      description: Higher priority pays a higher fee for faster inclusion.
+      enum: [default, low, normal, high, highest]
+
+    TransferRequest:
+      type: object
+      required: [destinations]
+      properties:
+        destinations:
+          type: array
+          minItems: 1
+          maxItems: *maxDestinations
+          items: { $ref: '#/components/schemas/Destination' }
+        accountIndex:
+          type: integer
+          format: int64
+          minimum: 0
+          default: 0
+        subaddressIndices:
+          type: array
+          description: Spend only from these subaddresses of the account.
+          items: { type: integer, format: int64, minimum: 0 }
+        priority: { $ref: '#/components/schemas/TransferPriority' }
+        dryRun:
+          type: boolean
+          default: false
+          description: Build and price the transaction without broadcasting it.
+
+    TransferResult:
+      type: object
+      required:
+        - txHash
+        - txKey
+        - amount
+        - amountXmr
+        - fee
+        - feeXmr
+        - weight
+        - relayed
+      properties:
+        txHash: { type: string }
+        txKey:
+          type: string
+          description: Proves the payment to a recipient. Keep it private.
+        amount: { $ref: '#/components/schemas/AtomicAmount' }
+        amountXmr: { $ref: '#/components/schemas/XMRAmount' }
+        fee: { $ref: '#/components/schemas/AtomicAmount' }
+        feeXmr: { $ref: '#/components/schemas/XMRAmount' }
+        weight: { type: integer, format: int64 }
+        relayed:
+          type: boolean
+          description: False for a dry run.
+
+  responses:
+    BadRequest:
+      description: The request was malformed.
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    Unauthorized:
+      description: The bearer token was missing or wrong.
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    Forbidden:
+      description: >-
+        The wallet password was wrong, the deployment is read-only, or it
+        disables transfers.
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    NotFound:
+      description: No such resource.
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    Conflict:
+      description: >-
+        The resource is in the wrong state: a wallet already exists, is not
+        open, is busy opening or closing, is still syncing, or the open
+        wallet limit was reached.
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    UnprocessableEntity:
+      description: The wallet refused the request, for example for lack of funds.
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    InternalServerError:
+      description: The service failed.
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    ServiceUnavailable:
+      description: monerod or the wallet process did not answer.
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }

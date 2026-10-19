@@ -1,0 +1,39 @@
+{
+  "name": "@psyb0t/monero",
+  "id": "@psyb0t/monero",
+  "version": "0.0.0",
+  "type": "code-plugin",
+  "summary": "Wire an OpenClaw agent to a self-hosted docker-monero node and wallets over MCP.",
+  "description": "A stdio to HTTP bridge between an MCP client (OpenClaw, Claude, Cursor, Codex, ...) and the /mcp endpoint of a docker-monero instance. The server registers these tools: monero_node_info, monero_get_block, monero_get_transaction, monero_fee_estimate, monero_list_wallets, monero_open_wallet, monero_close_wallet, monero_wallet_status, monero_wallet_balance, monero_wallet_addresses, monero_wallet_transfers, monero_create_wallet, monero_create_address, monero_generate_blocks (regtest only) and monero_transfer. A read-only deployment registers only the first eleven, and monero_transfer exists only when the operator sets DOCKER_MONERO_MCP_ALLOW_TRANSFERS=true. monero_transfer sends XMR and a broadcast transaction cannot be reversed, so call it only on the user's explicit request. docker-monero is self-hosted: you run the server and point this bridge at it. See https://github.com/psyb0t/docker-monero.",
+  "extensions": ["./bin/cli.js"],
+  "compat": {
+    "pluginApi": ">=2026.3.24-beta.2"
+  },
+  "build": {
+    "openclawVersion": "2026.3.24-beta.2"
+  },
+  "environment": {
+    "MONERO_URL": {
+      "required": true,
+      "description": "Base URL of your running docker-monero server, e.g. http://localhost:8080 (the bridge appends /mcp)."
+    },
+    "MONERO_TOKEN": {
+      "required": true,
+      "description": "Bearer token, the value of DOCKER_MONERO_API_TOKEN on the server. Every MCP call needs it."
+    }
+  },
+  "configSchema": {
+    "type": "object",
+    "required": ["url", "token"],
+    "properties": {
+      "url": {
+        "type": "string",
+        "description": "Base URL of your running docker-monero server (the bridge appends /mcp)."
+      },
+      "token": {
+        "type": "string",
+        "description": "Bearer token matching DOCKER_MONERO_API_TOKEN on the server."
+      }
+    }
+  }
+}

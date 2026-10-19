@@ -1,0 +1,118 @@
+name: pipeline
+
+on: [push]
+
+permissions: {}
+
+jobs:
+  # Lint, unit and integration tests with the coverage gate, the security
+  # scan, and the generated-code check. The integration suite builds the
+  # image and runs real monerod and monero-wallet-rpc on regtest. A tag
+  # reuses the default-branch run of the same commit instead of testing again.
+  code:
+    if: github.ref_type == 'branch'
+    permissions:
+      contents: read
+      security-events: write
+    uses: psyb0t/reusable-github-workflows/.github/workflows/code-workflow.yml@master
+    with:
+      lint_command: "make lint"
+      test_command: "make test-coverage"
+      sec_command: "make sec"
+      generate_command: "make generate"
+      coverage_file: "coverage-percent.txt"
+      sarif_file: "sec.sarif"
+      sarif_category: "go"
+
+  # The default branch builds the image once and also tags it sha-<commit>,
+  # so a release tag on that commit can promote it instead of rebuilding.
+  call-docker-image-workflow:
+    needs: [code]
+    if: github.ref_name == github.event.repository.default_branch
+    permissions:
+      contents: write # GitHub Release
+      security-events: write # upload the Grype SARIF to the Security tab
+    uses: psyb0t/reusable-github-workflows/.github/workflows/docker-image-workflow.yml@master
+    with:
+      repository_name: psyb0t/monero
+      target_platforms: "linux/amd64,linux/arm64"
+      push_sha_tag: true
+      scan_fail_build: false
+    secrets:
+      dockerhub_username: ${{ secrets.DOCKERHUB_USERNAME }}
+      dockerhub_token: ${{ secrets.DOCKERHUB_TOKEN }}
+
+  badges:
+    needs: [code]
+    if: github.ref_name == github.event.repository.default_branch
+    permissions:
+      contents: write
+    uses: psyb0t/reusable-github-workflows/.github/workflows/create-badges.yml@master
+    with:
+      coverage: true
+
+  # A release tag waits for the default-branch run of its commit, which
+  # already tested and built it, then promotes that image by digest.
+  wait-for-default-branch:
+    if: startsWith(github.ref, 'refs/tags/')
+    permissions:
+      actions: read
+    uses: psyb0t/reusable-github-workflows/.github/workflows/wait-for-default-branch.yml@master
+
+  promote-image:
+    needs: [wait-for-default-branch]
+    if: startsWith(github.ref, 'refs/tags/')
+    permissions:
+      # The called workflow's release job asks for write even when
+      # create_release turns it off, and GitHub checks that up front.
+      contents: write
+      security-events: write
+    uses: psyb0t/reusable-github-workflows/.github/workflows/docker-image-workflow.yml@master
+    with:
+      repository_name: psyb0t/monero
+      target_platforms: "linux/amd64,linux/arm64"
+      promote_on_tag: true
+      # The release job below cuts the release from the tag's own notes.
+      create_release: false
+      scan_fail_build: false
+    secrets:
+      dockerhub_username: ${{ secrets.DOCKERHUB_USERNAME }}
+      dockerhub_token: ${{ secrets.DOCKERHUB_TOKEN }}
+
+  release:
+    needs: [promote-image]
+    if: startsWith(github.ref, 'refs/tags/')
+    permissions:
+      contents: write
+    uses: psyb0t/reusable-github-workflows/.github/workflows/release-workflow.yml@master
+
+  release-badges:
+    needs: [release]
+    if: startsWith(github.ref, 'refs/tags/')
+    permissions:
+      contents: write
+    uses: psyb0t/reusable-github-workflows/.github/workflows/create-badges.yml@master
+    with:
+      coverage: true
+
+  # Publish the skill and the OpenClaw MCP bridge to ClawHub on tag pushes,
+  # after the image they point at is promoted on Docker Hub.
+  publish-to-clawhub:
+    needs: [promote-image]
+    if: startsWith(github.ref, 'refs/tags/')
+    permissions:
+      contents: read
+    uses: psyb0t/reusable-github-workflows/.github/workflows/clawhub-publish.yml@master
+    with:
+      skill_names: '["monero"]'
+      plugin_names: '["monero"]'
+    secrets:
+      clawhub_token: ${{ secrets.CLAWHUB_TOKEN }}
+
+  publish-to-mcp-registry:
+    needs: [promote-image]
+    if: startsWith(github.ref, 'refs/tags/')
+    permissions:
+      id-token: write # secretless OIDC auth to the registry
+      contents: read
+    uses: psyb0t/reusable-github-workflows/.github/workflows/mcp-registry-publish.yml@master

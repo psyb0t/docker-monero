@@ -1,0 +1,64 @@
+# Production compose for docker-monero.
+#
+#   cp .env.example .env    # set DOCKER_MONERO_API_TOKEN
+#   docker compose up -d
+#
+# The API, MCP endpoint, and metrics bind to loopback; put a reverse proxy or
+# a tailnet in front to reach them from elsewhere. P2P (18080) and the
+# restricted RPC for wallets such as Cake Wallet (18089) are published on
+# every interface on purpose: that is how a node joins the network and how
+# remote wallets use it. Remove those two lines to keep the node private.
+
+# psyb0t/monero is first-party and tracks :latest so fixes reach every
+# deployment; pin a digest yourself if you want a frozen version.
+
+services:
+  monero:
+    image: psyb0t/monero:latest
+    restart: unless-stopped
+    env_file: .env
+    ports:
+      - "127.0.0.1:8080:8080"
+      - "127.0.0.1:9091:9091"
+      - "18080:18080"
+      - "18089:18089"
+    volumes:
+      - monero-data:/data
+    read_only: true
+    tmpfs:
+      - /tmp:size=64m,noexec,nosuid
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    init: true
+    # monerod flushes its database on SIGTERM and every open wallet is saved
+    # first. Matches the image's RUNNER_SHUTDOWNTIMEOUT with headroom.
+    stop_grace_period: 3m
+    # monerod needs well above the 512 MiB starting budget: syncing mainnet
+    # wants a few GiB, and it runs a thread per core plus one per peer, which
+    # counts against the PID limit.
+    # Compose normalises pids_limit into deploy.resources.limits.pids and
+    # rejects the project if the two disagree, so both carry the same value.
+    pids_limit: 1024
+    deploy:
+      resources:
+        limits:
+          memory: 6g
+          cpus: "4"
+          pids: 1024
+    # /ready answers once monerod's RPC does. On a slow disk the first open
+    # of a large chain can outlast the start period; the container is then
+    # marked unhealthy for a while, never restarted.
+    healthcheck:
+      test: ["CMD", "/app/docker-monero", "healthcheck"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 30s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"
+
+volumes:
+  monero-data:

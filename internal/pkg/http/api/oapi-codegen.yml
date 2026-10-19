@@ -1,0 +1,14 @@
+# Server-side generation: types, the strict handler layer, and the stdlib
+# net/http router. std-http-server yields a plain http.Handler that mounts on
+# aichteeteapee's serbewr router next to the MCP handler.
+package: api
+output: api.gen.go
+generate:
+  models: true
+  std-http-server: true
+  strict-server: true
+  embedded-spec: true
+output-options:
+  skip-prune: true
+compatibility:
+  always-prefix-enum-values: true

@@ -1,0 +1,74 @@
+# Codex / agent scratch
+CODEX.local.md
+.agents-catalog-entries.md
+.research_files/
+.agent_notes/
+.agent_knowledge/
+.testing/
+PLAN.md
+implplan.md
+NOTES.md
+TODO.md
+WIP.md
+
+# Local release tooling
+git-update.sh
+git-update.sh.debot
+
+# Secrets and local configuration
+.env
+.env.local
+.env.*
+!.env.example
+
+# Build and test artifacts
+build/
+coverage.txt
+coverage.out
+coverage-percent.txt
+profile.out
+.cover/
+.cover-run/
+htmlcov/
+sec.sarif
+
+# Runtime state
+/data/
+*.sqlite
+*.sqlite-shm
+*.sqlite-wal
+
+# Editor / IDE
+.vscode/
+.idea/
+.editorconfig
+.envrc
+.tool-versions
+.python-version
+.nvmrc
+pyrightconfig.json
+
+# Agent scratch (Claude side; the Codex names are already covered above)
+CLAUDE.md
+CLAUDE.local.md
+.claude
+.anustimes/
+.brutal_reviews/
+.rule_audits/
+.telemetry/
+.logs/
+
+# Servicepack tooling state
+.backup
+scripts/.post-update-temp
+
+# Extra coverage artifacts produced by make test-coverage
+coverage.html
+coverage_covdata.txt
+coverage_merged.txt
+coverage_filtered.txt
+.log
+__pycache__
+
+# Plans
+.plan/
