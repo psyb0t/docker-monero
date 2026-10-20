@@ -21,7 +21,14 @@ import (
 
 const testRPCLogin = `example-user:EXAMPLE-DO-NOT-USE`
 
+// md5Hex recomputes digest hashes independently of digestHash.
+//
 //nolint:gosec // independently verifies the daemon's MD5 wire protocol
+func md5Hex(value string) string {
+	// nosemgrep: go.lang.security.audit.crypto.use_of_weak_crypto.use-of-md5
+	return fmt.Sprintf("%x", md5.Sum([]byte(value)))
+}
+
 func TestDigestRoundTrip(t *testing.T) {
 	t.Parallel()
 
@@ -68,15 +75,13 @@ func TestDigestRoundTrip(t *testing.T) {
 					assert.NotContains(t, header, "EXAMPLE-DO-NOT-USE")
 
 					// Verify the RFC response independently of the client.
-					ha1 := fmt.Sprintf("%x", md5.Sum([]byte(
-						"example-user:example, daemon:EXAMPLE-DO-NOT-USE")))
-					ha2 := fmt.Sprintf("%x", md5.Sum([]byte(
-						r.Method+":"+r.URL.RequestURI())))
-					expected := fmt.Sprintf("%x", md5.Sum([]byte(strings.Join(
-						[]string{
-							ha1, "example-nonce", "00000001",
-							parameters["cnonce"], "auth", ha2,
-						}, ":"))))
+					ha1 := md5Hex(
+						"example-user:example, daemon:EXAMPLE-DO-NOT-USE")
+					ha2 := md5Hex(r.Method + ":" + r.URL.RequestURI())
+					expected := md5Hex(strings.Join([]string{
+						ha1, "example-nonce", "00000001",
+						parameters["cnonce"], "auth", ha2,
+					}, ":"))
 					assert.Equal(t, expected, parameters["response"])
 
 					_, _ = io.WriteString(w, `{"status":"OK"}`)

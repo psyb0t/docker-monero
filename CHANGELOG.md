@@ -2,6 +2,10 @@
 
 All notable changes per release. Versions follow [semver](https://semver.org) pre-1.0 conventions: minor bumps may include breaking API changes, called out explicitly; patch bumps are docs, build, and fixes only.
 
+## v0.2.1
+
+- Fixed the release build. The security scan flagged the MD5 hashing that monerod's digest login requires, so v0.2.0 never published an image. This release ships everything listed under v0.2.0.
+
 ## v0.2.0
 
 - Added `DOCKER_MONERO_RPC_LOGIN=username:password`, an optional HTTP digest login for monerod's RPC. Remote wallets such as Cake Wallet then need this username and password to use the restricted RPC on 18089. The service and every wallet process authenticate with the same login. monerod receives it through its environment and each wallet process through a private config file that is deleted once the process answers, so it never appears on a command line. Empty, the default, keeps the RPC open as before.

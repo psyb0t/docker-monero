@@ -202,5 +202,6 @@ func digestQuote(value string) string {
 
 //nolint:gosec // monerod's digest protocol requires MD5
 func digestHash(value string) string {
+	// nosemgrep: go.lang.security.audit.crypto.use_of_weak_crypto.use-of-md5
 	return fmt.Sprintf("%x", md5.Sum([]byte(value)))
 }
