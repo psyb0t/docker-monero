@@ -20,6 +20,7 @@ var ErrStopped = errors.New("stopped")
 type Launch struct {
 	Name string
 	Args []string
+	Env  []string
 }
 
 // Proc is a fake child. It runs until Exit or Stop is called.
@@ -129,8 +130,13 @@ func (l *Launcher) Launch(
 	name string,
 	args []string,
 	_ *slog.Logger,
+	env ...string,
 ) (process.Process, error) {
-	launch := Launch{Name: name, Args: append([]string(nil), args...)}
+	launch := Launch{
+		Name: name,
+		Args: append([]string(nil), args...),
+		Env:  append([]string(nil), env...),
+	}
 
 	l.mu.Lock()
 

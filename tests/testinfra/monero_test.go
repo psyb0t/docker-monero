@@ -41,6 +41,18 @@ func TestAppRequestInstrumentedWhenCoverageIsOn(t *testing.T) {
 		[]string{coverDir + ":" + containerCoverDir}, hostConfig.Binds)
 }
 
+func TestAppRequestRestrictedRPC(t *testing.T) {
+	t.Parallel()
+
+	plain := appRequest(AppConfig{}, nil, "/repo", "")
+	assert.NotContains(t, plain.ExposedPorts, appRestrictedRPCPort+"/tcp")
+
+	exposed := appRequest(
+		AppConfig{ExposeRestrictedRPC: true}, nil, "/repo", "",
+	)
+	assert.Contains(t, exposed.ExposedPorts, appRestrictedRPCPort+"/tcp")
+}
+
 func TestAppEnv(t *testing.T) {
 	t.Setenv(coverDirEnvVar, "")
 

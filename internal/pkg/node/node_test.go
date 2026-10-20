@@ -31,6 +31,7 @@ func fastSettings() Settings {
 	return Settings{
 		Path:            "monerod",
 		Args:            []string{"--x"},
+		Env:             []string{"RPC_LOGIN=example:EXAMPLE-DO-NOT-USE"},
 		StopTimeout:     time.Second,
 		RestartDelay:    5 * time.Millisecond,
 		MaxRestartDelay: 20 * time.Millisecond,
@@ -77,6 +78,7 @@ func TestReadyAndStop(t *testing.T) {
 	waitFor(t, func() bool { return launcher.Last() != nil })
 	assert.Equal(t, "monerod", launcher.Last().Launched().Name)
 	assert.Equal(t, []string{"--x"}, launcher.Last().Launched().Args)
+	assert.Equal(t, fastSettings().Env, launcher.Last().Launched().Env)
 
 	select {
 	case <-supervisor.Ready():
@@ -287,4 +289,22 @@ func TestArgsRejectsBadExtra(t *testing.T) {
 
 	_, err := Args(cfg)
 	require.Error(t, err)
+}
+
+func TestRPCLoginIsOnlyInEnvironment(t *testing.T) {
+	t.Parallel()
+
+	cfg := baseConfig()
+	assert.Empty(t, Environment(cfg))
+
+	cfg.RPCLogin = "example:EXAMPLE-DO-NOT-USE"
+	assert.Equal(t, []string{"RPC_LOGIN=" + cfg.RPCLogin}, Environment(cfg))
+
+	args, err := Args(cfg)
+	require.NoError(t, err)
+
+	for _, arg := range args {
+		assert.NotContains(t, arg, cfg.RPCLogin)
+		assert.NotContains(t, arg, "EXAMPLE-DO-NOT-USE")
+	}
 }

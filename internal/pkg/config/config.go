@@ -11,6 +11,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"unicode"
+	"unicode/utf8"
 
 	"github.com/psyb0t/ctxerrors"
 	"github.com/psyb0t/ctxerrors/commerr"
@@ -52,6 +54,7 @@ const (
 	EnvPrune                = "DOCKER_MONERO_PRUNE"
 	EnvP2PPort              = "DOCKER_MONERO_P2P_PORT"
 	EnvRPCPort              = "DOCKER_MONERO_RPC_PORT"
+	EnvRPCLogin             = "DOCKER_MONERO_RPC_LOGIN"
 	EnvRestrictedRPCEnabled = "DOCKER_MONERO_RESTRICTED_RPC_ENABLED"
 	EnvRestrictedRPCPort    = "DOCKER_MONERO_RESTRICTED_RPC_PORT"
 	EnvPublicNode           = "DOCKER_MONERO_PUBLIC_NODE"
@@ -80,6 +83,7 @@ const (
 	DefaultPrune                = true
 	DefaultP2PPort              = 18080
 	DefaultRPCPort              = 18081
+	DefaultRPCLogin             = ""
 	DefaultRestrictedRPCEnabled = true
 	DefaultRestrictedRPCPort    = 18089
 	DefaultPublicNode           = false
@@ -96,9 +100,10 @@ const (
 
 // Limits on values that would otherwise produce a broken deployment.
 const (
-	maxPort           = 65535
-	maxOpenWallets    = 64
-	minAPITokenLength = 32
+	maxPort              = 65535
+	maxOpenWallets       = 64
+	minAPITokenLength    = 32
+	minRPCPasswordLength = 16
 )
 
 // extraArgPattern is the conservative shape every extra monerod argument
@@ -124,6 +129,7 @@ type Config struct {
 	Prune                bool          `env:"DOCKER_MONERO_PRUNE"`
 	P2PPort              int           `env:"DOCKER_MONERO_P2P_PORT"`
 	RPCPort              int           `env:"DOCKER_MONERO_RPC_PORT"`
+	RPCLogin             string        `env:"DOCKER_MONERO_RPC_LOGIN"`
 	RestrictedRPCEnabled bool          `env:"DOCKER_MONERO_RESTRICTED_RPC_ENABLED"`
 	RestrictedRPCPort    int           `env:"DOCKER_MONERO_RESTRICTED_RPC_PORT"`
 	PublicNode           bool          `env:"DOCKER_MONERO_PUBLIC_NODE"`
@@ -177,6 +183,7 @@ func setDefaults() {
 		EnvPrune:                DefaultPrune,
 		EnvP2PPort:              DefaultP2PPort,
 		EnvRPCPort:              DefaultRPCPort,
+		EnvRPCLogin:             DefaultRPCLogin,
 		EnvRestrictedRPCEnabled: DefaultRestrictedRPCEnabled,
 		EnvRestrictedRPCPort:    DefaultRestrictedRPCPort,
 		EnvPublicNode:           DefaultPublicNode,
@@ -277,6 +284,35 @@ func (c Config) validateMonero() error {
 
 	if _, err := c.MonerodExtraArgList(); err != nil {
 		return err
+	}
+
+	return c.validateRPCLogin()
+}
+
+func (c Config) validateRPCLogin() error {
+	if c.RPCLogin == "" {
+		return nil
+	}
+
+	username, password, found := strings.Cut(c.RPCLogin, ":")
+	if !found || username == "" ||
+		utf8.RuneCountInString(password) < minRPCPasswordLength {
+		return ctxerrors.Wrapf(
+			commerr.ErrInvalidValue,
+			"%s requires username:password, password minimum %d characters",
+			EnvRPCLogin, minRPCPasswordLength,
+		)
+	}
+
+	// The wallet config parser treats # as a comment and trims whitespace.
+	if strings.ContainsRune(c.RPCLogin, '#') ||
+		strings.ContainsFunc(c.RPCLogin, unicode.IsControl) ||
+		strings.TrimSpace(c.RPCLogin) != c.RPCLogin {
+		return ctxerrors.Wrapf(
+			commerr.ErrInvalidValue,
+			"%s disallows control characters, # and surrounding whitespace",
+			EnvRPCLogin,
+		)
 	}
 
 	return nil

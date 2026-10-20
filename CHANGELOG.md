@@ -2,6 +2,13 @@
 
 All notable changes per release. Versions follow [semver](https://semver.org) pre-1.0 conventions: minor bumps may include breaking API changes, called out explicitly; patch bumps are docs, build, and fixes only.
 
+## v0.2.0
+
+- Added `DOCKER_MONERO_RPC_LOGIN=username:password`, an optional HTTP digest login for monerod's RPC. Remote wallets such as Cake Wallet then need this username and password to use the restricted RPC on 18089. The service and every wallet process authenticate with the same login. monerod receives it through its environment and each wallet process through a private config file that is deleted once the process answers, so it never appears on a command line. Empty, the default, keeps the RPC open as before.
+- New API error code `RPC_AUTHENTICATION_FAILED` (502) when monerod rejects the service's login.
+- monerod and the wallet processes now start with an empty environment instead of inheriting the service's, so the API token no longer reaches them.
+- The issue pull from the GitLab and Codeberg mirrors runs at hours of its own instead of the same four hours as every other repository on the account.
+
 ## v0.1.2
 
 - Fixed the release pipeline's badge job on tag pushes. It looked for the coverage report in the tag's own run, which skips the tests, and failed. It now reads coverage from the default-branch run of the same commit, so the coverage and version badges update on every release.

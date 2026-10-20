@@ -6,6 +6,7 @@ This service can spend money. These are the boundaries it keeps and the ones you
 
 - **Token on everything.** The API and MCP refuse to start without a token of at least 32 characters, and compare it in constant time. Only `/healthz` and `/ready` are open.
 - **Unrestricted node RPC stays inside the container.** monerod's full RPC (port 18081), which can stop the daemon, roll back the chain, and ban peers, binds `127.0.0.1` inside the container. Only the restricted RPC (18089) and P2P (18080) bind every interface.
+- **Optional node RPC login.** Set `DOCKER_MONERO_RPC_LOGIN=username:password` to require HTTP digest authentication on both RPC listeners. Remote wallets connect to 18089 with this username and password. The service authenticates its own node calls and wallet processes automatically. Empty leaves RPC login disabled. The login reaches monerod through its child environment and wallet processes through temporary files with mode `0600` in a `0700` directory under `/tmp`, deleted once their RPC answers. It never reaches a command line or log.
 - **Wallet processes stay inside the container.** Each monero-wallet-rpc binds a loopback port with its login disabled. The container's loopback is shared only by this service and its own child processes.
 - **Wallet passwords never reach a command line.** Passwords go to the wallet process over its loopback RPC, so they do not show up in `/proc` or `ps`. They are never logged.
 - **Sends wait for sync.** A transfer is refused until the node is synchronized and the wallet has caught up with it.

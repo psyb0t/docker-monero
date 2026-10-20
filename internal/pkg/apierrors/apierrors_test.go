@@ -42,6 +42,13 @@ type classifyCase struct {
 // purpose: clients switch on them, so a rename must fail a test.
 var classifyCases = []classifyCase{
 	{
+		name:    "RPC authentication",
+		err:     commerr.ErrNotAuthenticated,
+		status:  http.StatusBadGateway,
+		code:    "RPC_AUTHENTICATION_FAILED",
+		message: "monerod or wallet RPC authentication failed",
+	},
+	{
 		name:    "read only",
 		err:     access.ErrReadOnly,
 		status:  http.StatusForbidden,

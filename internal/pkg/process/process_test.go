@@ -92,3 +92,38 @@ func TestLaunchMissingBinary(t *testing.T) {
 	)
 	require.Error(t, err)
 }
+
+func TestLaunchEnvironmentIsExplicit(t *testing.T) {
+	t.Setenv("PROCESS_TEST_INHERITED", "must-not-be-inherited")
+
+	testCases := []struct {
+		name     string
+		env      []string
+		expected string
+	}{
+		{name: "empty"},
+		{
+			name:     "explicit",
+			env:      []string{"PROCESS_TEST_CHILD=example"},
+			expected: "example",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			args := []string{
+				"-c",
+				`test -z "$PROCESS_TEST_INHERITED" &&
+     test "$PROCESS_TEST_CHILD" = "$1"`,
+				"sh", tc.expected,
+			}
+
+			child, err := NewCommanderLauncher().Launch(
+				context.Background(), "sh", args,
+				slog.New(slog.DiscardHandler), tc.env...,
+			)
+			require.NoError(t, err)
+			require.NoError(t, child.Wait())
+		})
+	}
+}

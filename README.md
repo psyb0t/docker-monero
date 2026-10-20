@@ -78,6 +78,8 @@ Create or restore the wallets you need, then lock the deployment down:
 
 Publish port 18089 and point the wallet at `http://<your-host>:18089` as a custom node. That is monerod's restricted RPC: it serves what wallets need and none of the commands that control the node. Set `DOCKER_MONERO_PUBLIC_NODE=true` if you also want to advertise it to the network.
 
+To require a login, set `DOCKER_MONERO_RPC_LOGIN=username:password` and enter the same username and password in the wallet's custom node settings. The username must be non-empty and contain no colon, and the password must have at least 16 characters. Empty keeps login disabled. See [configuration.md](docs/configuration.md#node).
+
 ## MCP
 
 Connect an MCP client to `http://localhost:8080/mcp` with `Authorization: Bearer <token>`. The tools and which ones each mode registers are in [docs/mcp.md](docs/mcp.md).

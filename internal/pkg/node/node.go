@@ -45,6 +45,7 @@ type Prober interface {
 type Settings struct {
 	Path            string
 	Args            []string
+	Env             []string
 	StopTimeout     time.Duration
 	RestartDelay    time.Duration
 	MaxRestartDelay time.Duration
@@ -156,6 +157,7 @@ func (s *Supervisor) runOnce(ctx context.Context, logger *slog.Logger) error {
 	child, err := s.launcher.Launch(
 		ctx, s.settings.Path, s.settings.Args,
 		logger.With("stream", outputComponent),
+		s.settings.Env...,
 	)
 	if err != nil {
 		return ctxerrors.Wrap(err, "launch monerod")

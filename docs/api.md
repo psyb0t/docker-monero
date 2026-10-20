@@ -87,6 +87,7 @@ An open wallet scans new blocks in the background, every ten seconds. `GET /v1/w
 | 422 | `INSUFFICIENT_FUNDS` | Not enough unlocked funds for amount plus fee. |
 | 422 | `VIEW_ONLY_WALLET` | A view-only wallet cannot send. |
 | 422 | `TRANSFER_REJECTED` | The wallet could not build the transaction. |
+| 502 | `RPC_AUTHENTICATION_FAILED` | monerod rejected the service's RPC login. Check the node login configuration. |
 | 503 | `SERVICE_UNAVAILABLE`, `WALLET_START_TIMEOUT`, `SHUTTING_DOWN` | monerod or a wallet process is not answering yet, or the service is stopping. |
 | 504 | `GATEWAY_TIMEOUT` | monerod or the wallet did not answer within `DOCKER_MONERO_RPC_TIMEOUT`. |
 

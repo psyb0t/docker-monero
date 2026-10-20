@@ -16,6 +16,7 @@ import (
 	"github.com/psyb0t/docker-monero/internal/pkg/mcp"
 	"github.com/psyb0t/docker-monero/internal/pkg/metrics"
 	"github.com/psyb0t/docker-monero/internal/pkg/monero/daemonrpc"
+	"github.com/psyb0t/docker-monero/internal/pkg/monero/jsonrpc"
 	"github.com/psyb0t/docker-monero/internal/pkg/node"
 	"github.com/psyb0t/docker-monero/internal/pkg/process"
 	"github.com/psyb0t/docker-monero/internal/pkg/walletpool"
@@ -67,11 +68,14 @@ func build(
 		return nil, ctxerrors.Wrap(err, "build monerod arguments")
 	}
 
-	daemon := daemonrpc.New(cfg.MonerodRPCURL(), cfg.RPCTimeout)
+	daemon := daemonrpc.New(
+		cfg.MonerodRPCURL(), cfg.RPCTimeout, jsonrpc.WithLogin(cfg.RPCLogin),
+	)
 
 	supervisor := node.New(node.Settings{
 		Path:        cfg.MonerodPath,
 		Args:        monerodArgs,
+		Env:         node.Environment(cfg),
 		StopTimeout: cfg.MonerodStopTimeout,
 	}, launcher, daemonProber{daemon: daemon})
 
@@ -79,6 +83,7 @@ func build(
 		WalletRPCPath: cfg.WalletRPCPath,
 		WalletDir:     cfg.WalletDir,
 		DaemonAddress: cfg.MonerodRPCAddress(),
+		RPCLogin:      cfg.RPCLogin,
 		Network:       cfg.NetworkType(),
 		PortStart:     cfg.WalletRPCPortStart,
 		MaxOpen:       cfg.MaxOpenWallets,

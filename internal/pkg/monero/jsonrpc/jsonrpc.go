@@ -70,16 +70,37 @@ type Client struct {
 	baseURL          string
 	httpClient       *http.Client
 	maxResponseBytes int64
+	login            string
+}
+
+// Option configures a daemon client before use.
+type Option func(*Client)
+
+// WithLogin enables HTTP digest authentication using username:password.
+func WithLogin(login string) Option {
+	return func(client *Client) {
+		client.login = login
+	}
 }
 
 // New builds a client for baseURL (scheme, host, and port, no path) with a
 // per-request timeout.
-func New(baseURL string, timeout time.Duration) *Client {
-	return &Client{
-		baseURL:          strings.TrimRight(baseURL, "/"),
-		httpClient:       &http.Client{Timeout: timeout},
+func New(baseURL string, timeout time.Duration, options ...Option) *Client {
+	client := &Client{
+		baseURL: strings.TrimRight(baseURL, "/"),
+		httpClient: &http.Client{
+			Timeout: timeout,
+			CheckRedirect: func(_ *http.Request, _ []*http.Request) error {
+				return http.ErrUseLastResponse
+			},
+		},
 		maxResponseBytes: DefaultMaxResponseBytes,
 	}
+	for _, option := range options {
+		option(client)
+	}
+
+	return client
 }
 
 // BaseURL returns the daemon URL the client was built for.
@@ -207,11 +228,17 @@ func (c *Client) post(
 
 	httpRequest.Header.Set(headerContent, contentType)
 
-	httpResponse, err := c.httpClient.Do(httpRequest)
+	httpResponse, err := c.do(httpRequest)
 	if err != nil {
-		return nil, classifyTransportError(ctx, err)
+		return nil, ctxerrors.Wrap(err, "send daemon RPC")
 	}
 	defer httpResponse.Body.Close() //nolint:errcheck // read-only body
+
+	if httpResponse.StatusCode == http.StatusUnauthorized {
+		return nil, ctxerrors.Wrap(
+			commerr.ErrNotAuthenticated, "daemon RPC authentication failed",
+		)
+	}
 
 	reader := io.LimitReader(httpResponse.Body, c.maxResponseBytes+1)
 

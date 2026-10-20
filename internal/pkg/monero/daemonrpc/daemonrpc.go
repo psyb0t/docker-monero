@@ -135,8 +135,12 @@ type Client struct {
 }
 
 // New builds a client for a monerod base URL.
-func New(baseURL string, timeout time.Duration) *Client {
-	return &Client{rpc: jsonrpc.New(baseURL, timeout)}
+func New(
+	baseURL string,
+	timeout time.Duration,
+	options ...jsonrpc.Option,
+) *Client {
+	return &Client{rpc: jsonrpc.New(baseURL, timeout, options...)}
 }
 
 // GetInfo returns the node's general state.

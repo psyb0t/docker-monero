@@ -29,13 +29,15 @@ type Process interface {
 	PID() int
 }
 
-// Launcher starts a child process.
+// Launcher starts a child with only the supplied environment variables.
+// An omitted environment is empty; service credentials are never inherited.
 type Launcher interface {
 	Launch(
 		ctx context.Context,
 		name string,
 		args []string,
 		output *slog.Logger,
+		env ...string,
 	) (Process, error)
 }
 
@@ -65,6 +67,7 @@ func (l *CommanderLauncher) Launch(
 	name string,
 	args []string,
 	output *slog.Logger,
+	env ...string,
 ) (Process, error) {
 	stdout := make(chan string, streamBuffer)
 	stderr := make(chan string, streamBuffer)
@@ -77,6 +80,8 @@ func (l *CommanderLauncher) Launch(
 		name,
 		args,
 		commander.WithStream(stdout, stderr),
+		// A non-nil slice prevents inheriting service credentials.
+		commander.WithEnv(append([]string{}, env...)),
 	)
 	if err != nil {
 		// commander closes stream channels only after a successful start,

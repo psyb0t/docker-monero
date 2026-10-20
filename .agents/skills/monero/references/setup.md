@@ -78,6 +78,7 @@ Every setting is a `DOCKER_MONERO_*` environment variable, read once at startup.
 | `DOCKER_MONERO_PRUNE` | `true` | Run monerod with a pruned chain. |
 | `DOCKER_MONERO_RESTRICTED_RPC_ENABLED` | `true` | Serve monerod's restricted RPC on the restricted port. |
 | `DOCKER_MONERO_RESTRICTED_RPC_PORT` | `18089` | Restricted RPC port. |
+| `DOCKER_MONERO_RPC_LOGIN` | empty | Optional `username:password` digest login for both node RPC listeners. Username must be non-empty without a colon, password at least 16 characters. Remote wallets send these credentials on 18089; internal clients authenticate automatically. Empty disables RPC login. |
 | `DOCKER_MONERO_PUBLIC_NODE` | `false` | Advertise the restricted RPC to other nodes. Applies only while the restricted RPC is enabled. |
 | `DOCKER_MONERO_MONEROD_EXTRA_ARGS` | empty | Extra monerod flags, space-separated. Each must match `[A-Za-z0-9_./:=,@+-]+`. |
 | `DOCKER_MONERO_READ_ONLY` | `false` | Refuse every write. Wins over the two transfer switches. |
@@ -97,6 +98,8 @@ Every setting is a `DOCKER_MONERO_*` environment variable, read once at startup.
 | `DOCKER_MONERO_WALLET_RPC_PATH` | `/usr/local/bin/monero-wallet-rpc` | monero-wallet-rpc binary. |
 | `DOCKER_MONERO_DATA_DIR` | `/data/monerod` | Blockchain directory. |
 | `DOCKER_MONERO_WALLET_DIR` | `/data/wallets` | Wallet directory. |
+
+`DOCKER_MONERO_RPC_LOGIN` rejects control characters, `#` and whitespace at the start or end. The service passes it to monerod through its child environment and to wallet processes through private temporary configuration files, removed after startup.
 
 ## Write switches
 

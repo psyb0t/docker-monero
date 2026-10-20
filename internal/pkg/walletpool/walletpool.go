@@ -71,6 +71,7 @@ type Settings struct {
 	WalletRPCPath     string
 	WalletDir         string
 	DaemonAddress     string
+	RPCLogin          string
 	Network           config.Network
 	PortStart         int
 	MaxOpen           int
@@ -452,8 +453,17 @@ func (p *Pool) start(
 	logger := ctxscope.GetLogger(ctx).
 		With(scopeKeyWallet, name, logKeyPort, port)
 
+	daemonConfig, err := newDaemonConfig(p.settings.RPCLogin)
+	if err != nil {
+		p.release(name, port)
+
+		return nil, err
+	}
+
+	defer daemonConfig.cleanup(ctx)
+
 	child, err := p.launcher.Launch(
-		ctx, p.settings.WalletRPCPath, p.args(port),
+		ctx, p.settings.WalletRPCPath, daemonConfig.args(p.args(port)),
 		logger.With("stream", outputStream),
 	)
 	if err != nil {
@@ -473,7 +483,7 @@ func (p *Pool) start(
 
 	go p.watch(wallet, logger)
 
-	if err := p.initialize(ctx, wallet, setup); err != nil {
+	if err := p.initialize(ctx, wallet, setup, daemonConfig); err != nil {
 		p.abandon(ctx, wallet, logger)
 
 		return nil, err
@@ -496,8 +506,13 @@ func (p *Pool) initialize(
 	ctx context.Context,
 	wallet *Wallet,
 	setup func(context.Context, *walletrpc.Client) error,
+	daemonConfig *daemonConfig,
 ) error {
 	if err := p.waitReady(ctx, wallet); err != nil {
+		return err
+	}
+
+	if err := daemonConfig.remove(); err != nil {
 		return err
 	}
 

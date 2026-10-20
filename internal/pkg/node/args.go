@@ -10,7 +10,8 @@ import (
 // Bind addresses. Unrestricted RPC never leaves the container's loopback;
 // P2P and restricted RPC bind every interface so Docker can publish them.
 const (
-	bindAll = "0.0.0.0"
+	bindAll             = "0.0.0.0"
+	rpcLoginEnvironment = "RPC_LOGIN"
 
 	// regtestFixedDifficulty keeps regtest mining instant.
 	regtestFixedDifficulty = "1"
@@ -19,6 +20,15 @@ const (
 	// private IP. Every wallet-rpc process connects from 127.0.0.1.
 	privateConnectionLimit = "100"
 )
+
+// Environment supplies only monerod's optional RPC credentials.
+func Environment(cfg config.Config) []string {
+	if cfg.RPCLogin == "" {
+		return nil
+	}
+
+	return []string{rpcLoginEnvironment + "=" + cfg.RPCLogin}
+}
 
 // Args builds monerod's command line from the deployment configuration.
 //

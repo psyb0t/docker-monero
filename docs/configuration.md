@@ -33,12 +33,15 @@ A typical lifecycle: run with writes on while you create or restore the wallets 
 | `DOCKER_MONERO_DATA_DIR` | `/data/monerod` | monerod's database directory. |
 | `DOCKER_MONERO_P2P_PORT` | `18080` | P2P port, bound on every interface. |
 | `DOCKER_MONERO_RPC_PORT` | `18081` | Unrestricted RPC, bound to `127.0.0.1` inside the container and never published. The service and the wallet processes use it. |
+| `DOCKER_MONERO_RPC_LOGIN` | empty | Optional `username:password` for HTTP digest authentication on both monerod RPC listeners. The username must be non-empty and contain no colon; the password must have at least 16 characters. Remote wallets use these credentials on 18089. Empty keeps RPC login disabled. |
 | `DOCKER_MONERO_RESTRICTED_RPC_ENABLED` | `true` | Starts monerod's restricted RPC listener, the one remote wallets such as Cake Wallet connect to. |
 | `DOCKER_MONERO_RESTRICTED_RPC_PORT` | `18089` | Port of that listener, bound on every interface. |
 | `DOCKER_MONERO_PUBLIC_NODE` | `false` | Adds `--public-node`, which advertises the restricted RPC to other nodes. Only takes effect with the restricted RPC enabled. |
 | `DOCKER_MONERO_MONEROD_EXTRA_ARGS` | empty | Extra monerod flags separated by spaces, for example `--out-peers=32 --limit-rate-up=2048`. Each argument may use letters, digits, and `_ . / : = , @ + -`; anything else is rejected at startup. |
 | `DOCKER_MONERO_MONEROD_STOP_TIMEOUT` | `90s` | How long monerod gets to flush its database after SIGTERM before it is killed. |
 | `DOCKER_MONERO_MONEROD_PATH` | `/usr/local/bin/monerod` | Binary path. |
+
+`DOCKER_MONERO_RPC_LOGIN` cannot contain control characters or `#`, or start or end with whitespace. These restrictions keep the login identical when monerod reads its environment and wallet processes read their temporary configuration files.
 
 ## Wallets
 

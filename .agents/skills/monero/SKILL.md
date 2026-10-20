@@ -59,6 +59,8 @@ curl -s -H "$H" "$MONERO_URL/v1/node/info"
 
 The examples below use `$H` and `$J` from this block. Everything under `/v1` and `/mcp` needs the bearer header, and a missing or wrong token gets 401. Every failure carries `{"code": "...", "message": "..."}`, and `code` is the stable value to branch on.
 
+`DOCKER_MONERO_RPC_LOGIN` optionally protects monerod's RPC with a separate username and password for remote wallets on 18089. REST and MCP clients continue to use the bearer token; the service handles its internal RPC login.
+
 Amounts are strings of atomic units (1 XMR = 10^12), because JSON numbers lose precision above 2^53. Responses add an XMR decimal string next to each amount (`balance` and `balanceXmr`). Requests take atomic units only. Check `network` in `/v1/node/info` before sending, because addresses are network-specific.
 
 ## Node

@@ -41,6 +41,7 @@ const (
 	codeNotRegtest         = "NOT_REGTEST"
 	codeShuttingDown       = "SHUTTING_DOWN"
 	codeWalletStartTimeout = "WALLET_START_TIMEOUT"
+	codeRPCAuthentication  = "RPC_AUTHENTICATION_FAILED"
 )
 
 // Mapped is an error translated for a client: the HTTP status and the
@@ -70,6 +71,12 @@ type rule struct {
 //
 //nolint:gochecknoglobals // a fixed lookup table, read-only after init
 var rules = []rule{
+	{
+		target:  commerr.ErrNotAuthenticated,
+		status:  http.StatusBadGateway,
+		code:    codeRPCAuthentication,
+		message: "monerod or wallet RPC authentication failed",
+	},
 	{
 		target:  access.ErrReadOnly,
 		status:  http.StatusForbidden,

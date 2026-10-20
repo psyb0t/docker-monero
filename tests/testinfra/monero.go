@@ -29,8 +29,9 @@ import (
 
 // Ports the image exposes.
 const (
-	appHTTPPort    = "8080"
-	appMetricsPort = "9091"
+	appHTTPPort          = "8080"
+	appMetricsPort       = "9091"
+	appRestrictedRPCPort = "18089"
 )
 
 const (
@@ -74,6 +75,8 @@ var errNoGoMod = errors.New("go.mod not found above the working directory")
 type AppConfig struct {
 	// Env adds or overrides DOCKER_MONERO_* variables.
 	Env map[string]string
+	// ExposeRestrictedRPC publishes the remote-wallet RPC for protocol tests.
+	ExposeRestrictedRPC bool
 }
 
 // App is a running container plus what a test needs to talk to it.
@@ -127,11 +130,11 @@ func StartApp(ctx context.Context, config AppConfig) (*App, error) {
 
 // appRequest is the container request StartApp sends.
 func appRequest(
-	_ AppConfig,
+	config AppConfig,
 	env map[string]string,
 	root, coverDir string,
 ) testcontainers.ContainerRequest {
-	return testcontainers.ContainerRequest{
+	request := testcontainers.ContainerRequest{
 		FromDockerfile: testcontainers.FromDockerfile{
 			Context:    root,
 			Dockerfile: appDockerfile,
@@ -154,6 +157,13 @@ func appRequest(
 			}).
 			WithStartupTimeout(appStartTimout),
 	}
+	if config.ExposeRestrictedRPC {
+		request.ExposedPorts = append(
+			request.ExposedPorts, appRestrictedRPCPort+"/tcp",
+		)
+	}
+
+	return request
 }
 
 // appEnv is the container environment: regtest, the test's token, and

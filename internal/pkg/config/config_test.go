@@ -28,6 +28,7 @@ var allEnvNames = []string{
 	EnvPrune,
 	EnvP2PPort,
 	EnvRPCPort,
+	EnvRPCLogin,
 	EnvRestrictedRPCEnabled,
 	EnvRestrictedRPCPort,
 	EnvPublicNode,
@@ -69,6 +70,7 @@ func defaultConfig() Config {
 		Prune:                DefaultPrune,
 		P2PPort:              DefaultP2PPort,
 		RPCPort:              DefaultRPCPort,
+		RPCLogin:             DefaultRPCLogin,
 		RestrictedRPCEnabled: DefaultRestrictedRPCEnabled,
 		RestrictedRPCPort:    DefaultRestrictedRPCPort,
 		PublicNode:           DefaultPublicNode,
@@ -692,6 +694,7 @@ func TestParseReadsEveryVariable(t *testing.T) {
 		EnvPrune:                "false",
 		EnvP2PPort:              "28080",
 		EnvRPCPort:              "28081",
+		EnvRPCLogin:             "example:EXAMPLE-DO-NOT-USE",
 		EnvRestrictedRPCEnabled: "false",
 		EnvRestrictedRPCPort:    "28089",
 		EnvPublicNode:           "true",
@@ -725,6 +728,7 @@ func TestParseReadsEveryVariable(t *testing.T) {
 		Prune:                false,
 		P2PPort:              28080,
 		RPCPort:              28081,
+		RPCLogin:             "example:EXAMPLE-DO-NOT-USE",
 		RestrictedRPCEnabled: false,
 		RestrictedRPCPort:    28089,
 		PublicNode:           true,
@@ -857,6 +861,76 @@ func TestParseRunsValidation(t *testing.T) {
 			require.ErrorIs(t, err, tc.wantErr)
 			assert.ErrorContains(t, err, tc.wantIn)
 			assert.Equal(t, Config{}, got)
+		})
+	}
+}
+
+func TestValidateRPCLogin(t *testing.T) {
+	t.Parallel()
+
+	testCases := []struct {
+		name  string
+		login string
+		valid bool
+	}{
+		{name: "empty", valid: true},
+		{
+			name:  "minimum password",
+			login: "example:" + strings.Repeat("x", 16),
+			valid: true,
+		},
+		{
+			name:  "long password",
+			login: "example:EXAMPLE-DO-NOT-USE", valid: true,
+		},
+		{
+			name:  "colon in password",
+			login: "example:EXAMPLE:DO-NOT-USE", valid: true,
+		},
+		{
+			name:  "unicode minimum password",
+			login: "example:" + strings.Repeat("\u00e9", 16),
+			valid: true,
+		},
+		{
+			name:  "unicode short password",
+			login: "example:" + strings.Repeat("\u00e9", 15),
+		},
+		{name: "missing separator", login: "EXAMPLE-DO-NOT-USE"},
+		{name: "missing username", login: ":EXAMPLE-DO-NOT-USE"},
+		{name: "empty password", login: "example:"},
+		{name: "short password", login: "example:" + strings.Repeat("x", 15)},
+		{
+			name:  "newline injection",
+			login: "example:EXAMPLE-DO-NOT-USE\nlog-level=4",
+		},
+		{name: "carriage return", login: "example:EXAMPLE-DO-NOT-USE\r"},
+		{name: "nul", login: "example:EXAMPLE-DO-NOT-USE\x00"},
+		{name: "username control", login: "example\t:EXAMPLE-DO-NOT-USE"},
+		{name: "password control", login: "example:EXAMPLE\x7fDO-NOT-USE"},
+		{name: "comment", login: "example:EXAMPLE-DO-NOT-USE#"},
+		{name: "leading whitespace", login: " example:EXAMPLE-DO-NOT-USE"},
+		{name: "trailing whitespace", login: "example:EXAMPLE-DO-NOT-USE "},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			cfg := defaultConfig()
+			cfg.RPCLogin = tc.login
+
+			err := cfg.Validate()
+
+			if tc.valid {
+				require.NoError(t, err)
+
+				return
+			}
+
+			require.ErrorIs(t, err, commerr.ErrInvalidValue)
+			assert.ErrorContains(t, err, EnvRPCLogin)
+			assert.NotContains(t, err.Error(), tc.login)
 		})
 	}
 }
