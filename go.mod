@@ -5,7 +5,7 @@ go 1.26.9
 require (
 	github.com/getkin/kin-openapi v0.144.0
 	github.com/google/jsonschema-go v0.4.3
-	github.com/moby/moby/api v1.55.0
+	github.com/moby/moby/api v1.56.1
 	github.com/modelcontextprotocol/go-sdk v1.8.0
 	github.com/oapi-codegen/runtime v1.7.0
 	github.com/prometheus/client_golang v1.14.0
