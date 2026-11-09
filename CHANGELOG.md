@@ -2,6 +2,10 @@
 
 All notable changes per release. Versions follow [semver](https://semver.org) pre-1.0 conventions: minor bumps may include breaking API changes, called out explicitly; patch bumps are docs, build, and fixes only.
 
+## v0.2.3
+
+- Fixed the release build. New Go vulnerability advisories failed the security scan, so v0.2.2 never published an image. The image now builds with Go 1.26.10 (crypto/x509 fix), `kin-openapi` v0.152.0 and `klauspost/compress` v1.20.2. This release ships everything listed under v0.2.2.
+
 ## v0.2.2
 
 - Documentation now lives at https://psyb0t.github.io/docker-monero/, built from `docs/` by GitHub Pages. New pages cover agent integrations, monitoring (probes, every Prometheus metric, log fields) and troubleshooting (each startup refusal and the common API errors). The README links there instead of to the Markdown files. `make docs` builds the site locally.

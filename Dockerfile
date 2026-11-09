@@ -44,7 +44,7 @@ RUN set -eu; \
 
 # Go build. CGO is off, so the binary is static and runs on the Debian
 # runtime unchanged.
-FROM golang:1.26.9-alpine@sha256:cdfd4fe2da6b225d8b40c6b7a105736e548e83ff56d5d8f9394446eeb5eb84e0 AS builder
+FROM golang:1.26.10-alpine@sha256:87c65a688975c0b1d4585d204874c45ca78354670e3a5f11368c5a492303d696 AS builder
 
 ARG BUILD_COMMIT=""
 ARG BUILD_VERSION="dev"

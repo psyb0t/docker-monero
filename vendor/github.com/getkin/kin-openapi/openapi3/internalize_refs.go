@@ -148,7 +148,13 @@ func (doc *T) addSchemaToSpec(s *SchemaRef, refNameResolver RefNameResolver, par
 	if doc.Components.Schemas == nil {
 		doc.Components.Schemas = make(Schemas)
 	}
-	doc.Components.Schemas[name] = s.Value.NewRef()
+	// A $ref with siblings has a copy of its target as Value, with the siblings
+	// applied: the component is the target itself.
+	value := s.Value
+	if s.target != nil {
+		value = s.target
+	}
+	doc.Components.Schemas[name] = value.NewRef()
 	s.Ref = "#/components/schemas/" + name
 	return true
 }
@@ -351,6 +357,13 @@ func (doc *T) derefSchema(s *Schema, refNameResolver RefNameResolver, parentIsEx
 		for _, k := range componentNames(s.Discriminator.Mapping) {
 			mapRef := s.Discriminator.Mapping[k]
 			s2 := (*SchemaRef)(&mapRef)
+			// The mapping value may be a plain schema name rather than a
+			// reference, and a reference the loader could not follow was left
+			// as written. Neither has a resolved path, so neither can be named
+			// by the resolver: leave them exactly as they are.
+			if s2.RefPath() == nil {
+				continue
+			}
 			isExternal := doc.addSchemaToSpec(s2, refNameResolver, parentIsExternal)
 			doc.derefSchema(s2.Value, refNameResolver, isExternal || parentIsExternal)
 			s.Discriminator.Mapping[k] = MappingRef(*s2)

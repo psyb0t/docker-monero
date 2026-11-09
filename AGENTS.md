@@ -22,7 +22,7 @@ Data flow: client -> bearer auth -> REST handler or MCP tool -> core service -> 
 
 ## Stack
 
-- Language: Go 1.26.9, `CGO_ENABLED=0`.
+- Language: Go 1.26.10 in `Dockerfile` and `Dockerfile.dev` (`go 1.26.9` minimum in `go.mod`), `CGO_ENABLED=0`.
 - Framework: servicepack, with aichteeteapee `serbewr` for HTTP, oapi-codegen (strict server) and oapixconstgen for the contract, and the MCP Go SDK for `/mcp`.
 - Runtime image: Debian trixie-slim with tini, the Monero CLI release pinned by SHA-256 in `Dockerfile`, a fixed UID/GID of 10001.
 - Deploy: `docker-compose.yml` (read-only root, all capabilities dropped, memory, CPU and PID limits).
