@@ -5,7 +5,7 @@ name: pipeline
 # image digest to the release tag without rebuilding or testing again.
 on:
   push:
-    branches: [main]
+    branches: ["**"]
     tags: ["v*"]
 
 permissions: {}

@@ -41,6 +41,7 @@ A data directory the container cannot write also stops it. The image runs as UID
 | 503 `WALLET_START_TIMEOUT` | The wallet process did not answer in time. Raise `DOCKER_MONERO_WALLET_START_TIMEOUT`. |
 | 504 `GATEWAY_TIMEOUT` | monerod or the wallet did not answer within `DOCKER_MONERO_RPC_TIMEOUT`. |
 | 502 `RPC_AUTHENTICATION_FAILED` | monerod rejected the service's RPC login. Check `DOCKER_MONERO_RPC_LOGIN`. |
+| 403 `INVALID_WALLET_PASSWORD` | The password does not open that wallet. Use the one it was created or restored with. |
 | 403 `READ_ONLY` or `TRANSFERS_DISABLED` | A write switch refuses the call. See [write switches](configuration.md#write-switches). |
 | 422 `INSUFFICIENT_FUNDS` | Not enough unlocked funds for the amount plus the fee. Received funds unlock after 10 blocks, mined rewards after 60. |
 

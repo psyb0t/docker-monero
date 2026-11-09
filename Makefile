@@ -53,4 +53,4 @@ docs: ## Build the documentation site into .testing/docs-site
 		-e INPUT_DESTINATION="$(DOCS_SITE)" \
 		-e INPUT_VERBOSE=false \
 		-v "$(CURDIR):/work" \
-		ghcr.io/actions/jekyll-build-pages:v1.0.13
+		ghcr.io/actions/jekyll-build-pages:v1.0.13@sha256:6791ebfd912185ed59bfb5fb102664fa872496b79f87ff8b9cfba292a7345041

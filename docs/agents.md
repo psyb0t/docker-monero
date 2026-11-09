@@ -41,6 +41,6 @@ A client that speaks Streamable HTTP can skip the bridge and connect to `http://
 
 ## Sending from an agent
 
-The MCP server has no send tool unless the operator sets `DOCKER_MONERO_MCP_ALLOW_TRANSFERS=true`, and restoring a wallet from a seed or keys is never a tool. The skill tells the agent to send only a payment the user asked for, to dry-run it first, and never to ask for a seed in the conversation.
+The MCP server has no send tool unless the operator sets both `DOCKER_MONERO_ALLOW_TRANSFERS=true` and `DOCKER_MONERO_MCP_ALLOW_TRANSFERS=true`, and restoring a wallet from a seed or keys is never a tool. The skill tells the agent to send only a payment the user asked for, to dry-run it first, and never to ask for a seed in the conversation.
 
 This page is for using the service from an agent. To change the repository, read [`AGENTS.md`](https://github.com/psyb0t/docker-monero/blob/main/AGENTS.md).

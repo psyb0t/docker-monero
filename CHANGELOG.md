@@ -2,6 +2,13 @@
 
 All notable changes per release. Versions follow [semver](https://semver.org) pre-1.0 conventions: minor bumps may include breaking API changes, called out explicitly; patch bumps are docs, build, and fixes only.
 
+## v0.2.4
+
+- The pipeline runs on pushes to every branch again, as it did before v0.2.2, so Dependabot and other branches get lint and tests before they merge. Images still build only on `main` and `v*` tags.
+- `go.mod` requires Go 1.26.10, matching the image, so a build outside Docker also gets the crypto/x509 fix. The servicepack fallback Dockerfiles use Go 1.26.10 too. v0.2.3 also moved `santhosh-tekuri/jsonschema` to v6.0.3.
+- `make docs` pins the GitHub Pages build image by digest.
+- Doc fixes: the MCP send tool needs both `DOCKER_MONERO_ALLOW_TRANSFERS=true` and `DOCKER_MONERO_MCP_ALLOW_TRANSFERS=true`; a fresh regtest chain needs about 150 blocks before the first send; the error table lists 499 for a request the client closed; troubleshooting covers 403 `INVALID_WALLET_PASSWORD`. The README's license links use full URLs so they work on Docker Hub.
+
 ## v0.2.3
 
 - Fixed the release build. New Go vulnerability advisories failed the security scan, so v0.2.2 never published an image. The image now builds with Go 1.26.10 (crypto/x509 fix), `kin-openapi` v0.152.0 and `klauspost/compress` v1.20.2. This release ships everything listed under v0.2.2.

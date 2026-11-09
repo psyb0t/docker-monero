@@ -81,6 +81,7 @@ An open wallet scans new blocks in the background, every ten seconds. `GET /v1/w
 | Status | Code | Meaning |
 | --- | --- | --- |
 | 400 | `BAD_REQUEST` | Malformed input. The message says what. |
+| 499 | `BAD_REQUEST` | The client closed the request before the answer was ready. |
 | 401 | `UNAUTHORIZED` | Missing or wrong token. |
 | 403 | `READ_ONLY` | The deployment runs read-only. |
 | 403 | `TRANSFERS_DISABLED` | The deployment disables sends. |
@@ -105,4 +106,4 @@ An open wallet scans new blocks in the background, every ten seconds. `GET /v1/w
 
 ## Regtest
 
-On `DOCKER_MONERO_NETWORK=regtest`, `POST /v1/node/regtest/generate-blocks` mines blocks instantly and pays the rewards to an address. Use it to test an integration without real money. A fresh regtest chain needs a hundred or so blocks before transactions can be built, because each transaction picks decoy outputs from the chain.
+On `DOCKER_MONERO_NETWORK=regtest`, `POST /v1/node/regtest/generate-blocks` mines blocks instantly and pays the rewards to an address. Use it to test an integration without real money. A fresh regtest chain needs about 150 blocks before transactions can be built, because each transaction picks decoy outputs from the chain.

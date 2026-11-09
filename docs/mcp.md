@@ -28,7 +28,7 @@ Each tool calls the same code as the matching REST endpoint and returns the same
 | `monero_create_wallet` | Create a wallet and leave it open. Not in read-only mode. |
 | `monero_create_address` | Create a subaddress. Not in read-only mode. |
 | `monero_generate_blocks` | Mine blocks. Regtest only, not in read-only mode. |
-| `monero_transfer` | Send XMR. Only with `DOCKER_MONERO_MCP_ALLOW_TRANSFERS=true`, and never in read-only mode. |
+| `monero_transfer` | Send XMR. Only when both `DOCKER_MONERO_ALLOW_TRANSFERS=true` and `DOCKER_MONERO_MCP_ALLOW_TRANSFERS=true`, and never in read-only mode. |
 
 Tools that are switched off are not registered at all, so an agent never sees an action it could not take.
 

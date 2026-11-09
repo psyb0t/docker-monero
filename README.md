@@ -3,7 +3,7 @@
 [![CI](https://github.com/psyb0t/docker-monero/actions/workflows/pipeline.yml/badge.svg?branch=main)](https://github.com/psyb0t/docker-monero/actions/workflows/pipeline.yml)
 [![coverage](https://raw.githubusercontent.com/psyb0t/docker-monero/badges/coverage.svg)](https://github.com/psyb0t/docker-monero/actions/workflows/pipeline.yml)
 [![version](https://raw.githubusercontent.com/psyb0t/docker-monero/badges/version.svg)](https://github.com/psyb0t/docker-monero/releases)
-[![license](https://raw.githubusercontent.com/psyb0t/docker-monero/badges/license.svg)](LICENSE)
+[![license](https://raw.githubusercontent.com/psyb0t/docker-monero/badges/license.svg)](https://github.com/psyb0t/docker-monero/blob/main/LICENSE)
 [![Docker Pulls](https://img.shields.io/docker/pulls/psyb0t/monero?style=flat-square)](https://hub.docker.com/r/psyb0t/monero)
 
 Your own Monero node with programmatic wallets, in one container. It runs the official `monerod` and `monero-wallet-rpc` releases and puts an HTTP API and an MCP server in front of them, so scripts and AI agents can read the chain, open wallets, check balances, and send XMR. The node also serves the restricted RPC that Cake Wallet and other wallets connect to.
@@ -185,4 +185,4 @@ Details in the [development docs](https://psyb0t.github.io/docker-monero/develop
 
 ## License
 
-[WTFPL](LICENSE). Monero itself is under its own BSD-3-Clause license.
+[WTFPL](https://github.com/psyb0t/docker-monero/blob/main/LICENSE). Monero itself is under its own BSD-3-Clause license.
