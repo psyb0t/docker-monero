@@ -1,3 +1,9 @@
+---
+title: "Security"
+description: "What docker-monero enforces around the token, node RPC, wallet processes and sends, and what an operator still has to do."
+nav_order: 6
+---
+
 # Security
 
 This service can spend money. These are the boundaries it keeps and the ones you have to keep.

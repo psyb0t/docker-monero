@@ -36,7 +36,7 @@ Data flow: client -> bearer auth -> REST handler or MCP tool -> core service -> 
 - `tests/integration/`, `tests/testinfra/`: the suite that runs the real image on regtest.
 - `scripts/`: `audit-compose*.sh`, `check-go-age.sh`, and `make/` project overrides of framework steps.
 - `.agents/`: the agent skill (`skills/monero/`), the Claude and Codex plugin manifests, the OpenClaw MCP bridge (`plugins/monero/`) and these rules. `CLAUDE.md` and `.claude` are local, gitignored symlinks onto `AGENTS.md` and `.agents`, recreated per checkout.
-- `docs/`: overview docs. See `docs/development.md` for tests and API changes.
+- `docs/`: the documentation site, published by GitHub Pages from `main` at https://psyb0t.github.io/docker-monero/ (Jekyll with the just-the-docs theme). Every page needs front matter with a unique `title` and a `description` of 50 to 170 characters. Page-to-page links use the relative `.md` path; a link to a file outside `docs/` uses the full GitHub URL. `make docs` builds the site into `.testing/docs-site`. See `docs/development.md` for tests and API changes.
 
 ## Dev workflow
 
@@ -52,6 +52,7 @@ make test-coverage    # unit and integration tests, coverage gate (90%)
 make sec              # govulncheck and semgrep, writes sec.sarif
 make generate         # regenerate code from api/api.yml
 make audit-compose    # docker-compose.yml against the hardened floor
+make docs             # build the documentation site into .testing/docs-site
 ```
 
 `pre-commit.sh` runs `make lint && make test-coverage`.

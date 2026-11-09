@@ -1,6 +1,12 @@
+---
+title: "Configuration"
+description: "Every DOCKER_MONERO_* environment variable with its default, the write switches, ports, the data directory and disk sizing."
+nav_order: 3
+---
+
 # Configuration
 
-Everything is configured through environment variables, read once at startup. A bad value stops the container before monerod starts, with an error naming the variable. `.env.example` lists the ones most deployments touch.
+Everything is configured through environment variables, read once at startup. A bad value stops the container before monerod starts, with an error naming the variable. [`.env.example`](https://github.com/psyb0t/docker-monero/blob/main/.env.example) lists the ones most deployments touch.
 
 ## Service
 
@@ -60,7 +66,7 @@ The service is built on [servicepack](https://github.com/psyb0t/servicepack), wh
 | Variable | Image default | What it does |
 | --- | --- | --- |
 | `LOG_LEVEL` | `info` | `debug`, `info`, `warn`, or `error`. |
-| `LOG_FORMAT` | `json` | `json` or `text`. monerod's and the wallet processes' output is forwarded into the same log, tagged with `child` and `stream`. |
+| `LOG_FORMAT` | `json` | `json` or `text`. monerod's and the wallet processes' output is forwarded into the same log. See [monitoring](monitoring.md#logs) for the fields. |
 | `RUNNER_SHUTDOWNTIMEOUT` | `170s` | Whole-shutdown budget: draining the API, saving every open wallet, and monerod's flush. Give `docker stop` at least this long (`docker stop -t 180`, or `stop_grace_period` in compose). |
 
 ## Ports and data directory

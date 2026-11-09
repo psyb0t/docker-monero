@@ -1,0 +1,51 @@
+title: docker-monero
+tagline: A Monero node and programmatic wallets over HTTP and MCP
+description: A Docker image that runs the official monerod and monero-wallet-rpc behind one Go service with a REST API, an MCP server and a bearer token.
+lang: en
+url: https://psyb0t.github.io
+baseurl: /docker-monero
+repository: psyb0t/docker-monero
+author: Ciprian Mandache
+
+remote_theme: just-the-docs/just-the-docs@v0.12.0
+color_scheme: mocha
+
+plugins:
+  - jekyll-remote-theme
+  - jekyll-seo-tag
+  - jekyll-sitemap
+  - jekyll-relative-links
+  - jekyll-include-cache
+
+permalink: pretty
+
+relative_links:
+  enabled: true
+  collections: false
+
+defaults:
+  - scope:
+      path: ""
+    values:
+      layout: default
+      seo:
+        type: TechArticle
+
+search:
+  heading_level: 3
+
+aux_links:
+  GitHub:
+    - https://github.com/psyb0t/docker-monero
+aux_links_new_tab: true
+
+nav_external_links:
+  - title: Changelog
+    url: https://github.com/psyb0t/docker-monero/blob/main/CHANGELOG.md
+
+gh_edit_link: true
+gh_edit_link_text: Edit this page on GitHub
+gh_edit_repository: https://github.com/psyb0t/docker-monero
+gh_edit_branch: main
+gh_edit_source: docs
+gh_edit_view_mode: tree

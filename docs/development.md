@@ -1,3 +1,9 @@
+---
+title: "Development"
+description: "Build, lint and test docker-monero from source with Make and Docker, change the OpenAPI contract, and upgrade Monero."
+nav_order: 10
+---
+
 # Development
 
 Docker, Make, and a shell are all you need on the host. Every target runs in the development image.
@@ -12,6 +18,7 @@ make test-coverage   # unit and integration tests, coverage gate (90%)
 make sec             # govulncheck and semgrep, writes sec.sarif
 make generate        # regenerate code from api/api.yml
 make audit-compose   # docker-compose.yml against the hardened floor
+make docs            # build this documentation site into .testing/docs-site
 ```
 
 ## Tests
@@ -22,9 +29,13 @@ Unit tests never start Monero. The wallet pool and the core services run against
 
 `make test-coverage` builds an instrumented image for the same suite, so the service's own code counts toward the coverage gate.
 
+## Documentation
+
+This site is the `docs/` directory, built by GitHub Pages from `main` with Jekyll and the just-the-docs theme. `make docs` runs the same build image GitHub uses and writes the result to `.testing/docs-site`. Every page needs front matter with a `title` and a `description`. Link another page by its relative `.md` path, and a file outside `docs/` by its full GitHub URL, because a relative `../` link breaks on the published site.
+
 ## Changing the API
 
-The contract is `api/api.yml`. Edit it, run `make generate`, and implement the new methods the generated `StrictServerInterface` asks for in `internal/pkg/http/server`. Never edit a `*.gen.go` file.
+The contract is [`api/api.yml`](https://github.com/psyb0t/docker-monero/blob/main/api/api.yml). Edit it, run `make generate`, and implement the new methods the generated `StrictServerInterface` asks for in `internal/pkg/http/server`. Never edit a `*.gen.go` file.
 
 ## Framework
 
@@ -32,4 +43,4 @@ The project is built on [servicepack](https://github.com/psyb0t/servicepack). `m
 
 ## Upgrading Monero
 
-`Dockerfile` pins the release version and the SHA-256 of each tarball. Download the new `hashes.txt` from getmonero.org, verify its signature against binaryFate's key, then update `MONERO_VERSION` and the two hashes together.
+[`Dockerfile`](https://github.com/psyb0t/docker-monero/blob/main/Dockerfile) pins the release version and the SHA-256 of each tarball. Download the new `hashes.txt` from getmonero.org, verify its signature against binaryFate's key, then update `MONERO_VERSION` and the two hashes together.

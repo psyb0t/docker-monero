@@ -1,3 +1,9 @@
+---
+title: "Architecture"
+description: "How the Go service supervises monerod and one monero-wallet-rpc per open wallet, plus startup, shutdown and crash handling."
+nav_order: 9
+---
+
 # Architecture
 
 One container, one Go process, a few children.
@@ -18,7 +24,7 @@ tini is PID 1 and reaps children. The Go service is a [servicepack](https://gith
 
 | Package | Role |
 | --- | --- |
-| `internal/pkg/services/monero-server` | Wires everything and runs the lifecycle. |
+| [`internal/pkg/services/monero-server`](https://github.com/psyb0t/docker-monero/tree/main/internal/pkg/services/monero-server) | Wires everything and runs the lifecycle. |
 | `internal/pkg/config` | `DOCKER_MONERO_*` parsing and validation. |
 | `internal/pkg/node` | monerod supervisor: builds its command line, restarts it with backoff when it crashes, reports when its RPC first answers, stops it with SIGTERM and a deadline. |
 | `internal/pkg/walletpool` | One monero-wallet-rpc process per open wallet: port allocation, start and readiness, create/open/restore, save and stop on close, and dropping a process that dies on its own. |

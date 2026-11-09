@@ -2,6 +2,13 @@
 
 All notable changes per release. Versions follow [semver](https://semver.org) pre-1.0 conventions: minor bumps may include breaking API changes, called out explicitly; patch bumps are docs, build, and fixes only.
 
+## v0.2.2
+
+- Documentation now lives at https://psyb0t.github.io/docker-monero/, built from `docs/` by GitHub Pages. New pages cover agent integrations, monitoring (probes, every Prometheus metric, log fields) and troubleshooting (each startup refusal and the common API errors). The README links there instead of to the Markdown files. `make docs` builds the site locally.
+- The error code table now lists `INTERNAL_SERVER_ERROR` (500). The docs now name the log fields monerod and the wallet processes write: `child` and `stream` for monerod, `stream` and `wallet` for a wallet process.
+- The pipeline runs only for pushes to `main` and `v*` tags, and one badge job serves both.
+- Added Buy Me a Coffee to the funding links.
+
 ## v0.2.1
 
 - Fixed the release build. The security scan flagged the MD5 hashing that monerod's digest login requires, so v0.2.0 never published an image. This release ships everything listed under v0.2.0.

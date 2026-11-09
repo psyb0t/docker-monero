@@ -11,6 +11,9 @@ NOTES.md
 TODO.md
 WIP.md
 
+# Local config overrides at any depth
+*.local.json
+
 # Local release tooling
 /git-update.sh
 /git-update.sh.debot

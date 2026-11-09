@@ -1,3 +1,9 @@
+---
+title: "MCP"
+description: "The docker-monero MCP server at /mcp: every tool, which deployment switches register it, and what stays REST only."
+nav_order: 4
+---
+
 # MCP
 
 The same port as the API serves the [Model Context Protocol](https://modelcontextprotocol.io/) over Streamable HTTP at `/mcp`. Point any MCP client at `http://<host>:8080/mcp` with the header `Authorization: Bearer <DOCKER_MONERO_API_TOKEN>`.
@@ -26,4 +32,6 @@ Each tool calls the same code as the matching REST endpoint and returns the same
 
 Tools that are switched off are not registered at all, so an agent never sees an action it could not take.
 
-Restoring a wallet from a seed or keys is not a tool on purpose: those secrets should not pass through an agent's context. Use the REST endpoints for that.
+Restoring a wallet from a seed or keys is not a tool on purpose: those secrets should not pass through an agent's context. Use the REST endpoints for that. Mempool statistics (`GET /v1/node/mempool`) are REST only too, and `monero_transfer` takes no `subaddressIndices`.
+
+The tools are registered in [`internal/pkg/mcp/tools.go`](https://github.com/psyb0t/docker-monero/blob/main/internal/pkg/mcp/tools.go). To install the agent skill or the stdio bridge, see [agent integrations](agents.md).
