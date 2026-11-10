@@ -1,4 +1,4 @@
-# monero
+# docker-monero
 
 A Docker image, `psyb0t/monero`, that runs the official `monerod` and `monero-wallet-rpc` behind one Go service. The service supervises both processes and puts a REST API (`/v1`, contract in `api/api.yml`) and an MCP endpoint (`/mcp`) in front of them, on one port, behind one bearer token.
 

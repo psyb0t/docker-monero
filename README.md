@@ -1,4 +1,4 @@
-# monero
+# docker-monero
 
 [![CI](https://github.com/psyb0t/docker-monero/actions/workflows/pipeline.yml/badge.svg?branch=main)](https://github.com/psyb0t/docker-monero/actions/workflows/pipeline.yml)
 [![coverage](https://raw.githubusercontent.com/psyb0t/docker-monero/badges/coverage.svg)](https://github.com/psyb0t/docker-monero/actions/workflows/pipeline.yml)
