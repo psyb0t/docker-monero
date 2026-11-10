@@ -7,7 +7,7 @@ seo:
   type: WebSite
 ---
 
-# docker-monero
+# monero
 
 Your own Monero node with programmatic wallets, in one container. The image `psyb0t/monero` runs the official `monerod` and `monero-wallet-rpc` releases and puts an HTTP API and an MCP server in front of them, so scripts and AI agents can read the chain, open wallets, check balances, and send XMR. The node also serves the restricted RPC that Cake Wallet and other wallets connect to.
 

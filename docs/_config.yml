@@ -1,4 +1,4 @@
-title: docker-monero
+title: monero
 tagline: A Monero node and programmatic wallets over HTTP and MCP
 description: A Docker image that runs the official monerod and monero-wallet-rpc behind one Go service with a REST API, an MCP server and a bearer token.
 lang: en

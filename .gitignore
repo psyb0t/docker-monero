@@ -52,9 +52,8 @@ WIP.md
 pyrightconfig.json
 
 # Agent scratch (Claude side; the Codex names are already covered above)
-CLAUDE.md
 CLAUDE.local.md
-.claude
+vendor/**/CLAUDE.md
 .anustimes/
 .brutal_reviews/
 .rule_audits/

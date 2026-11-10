@@ -1,8 +1,12 @@
-# docker-monero
+# monero
 
 A Docker image, `psyb0t/monero`, that runs the official `monerod` and `monero-wallet-rpc` behind one Go service. The service supervises both processes and puts a REST API (`/v1`, contract in `api/api.yml`) and an MCP endpoint (`/mcp`) in front of them, on one port, behind one bearer token.
 
 It exists so a program or an agent can read a Monero node and manage wallets over HTTP without running `monero-wallet-cli`. The service is built on [servicepack](https://github.com/psyb0t/servicepack), a clone-and-own Go service framework.
+
+## Agent setup
+
+`CLAUDE.md` is a committed symlink to `AGENTS.md`, and `.claude` is a committed symlink to `.agents`, so Claude Code reads the same instructions, rules and skills as Codex. Claude's Edit and Write tools refuse to write through a symlink, so edit `AGENTS.md` and `.agents/rules/*.md` directly.
 
 ## Architecture
 
@@ -35,7 +39,7 @@ Data flow: client -> bearer auth -> REST handler or MCP tool -> core service -> 
 - `pkg/http/api/client/`: the generated public Go client.
 - `tests/integration/`, `tests/testinfra/`: the suite that runs the real image on regtest.
 - `scripts/`: `audit-compose*.sh`, `check-go-age.sh`, and `make/` project overrides of framework steps.
-- `.agents/`: the agent skill (`skills/monero/`), the Claude and Codex plugin manifests, the OpenClaw MCP bridge (`plugins/monero/`) and these rules. `CLAUDE.md` and `.claude` are local, gitignored symlinks onto `AGENTS.md` and `.agents`, recreated per checkout.
+- `.agents/`: the agent skill (`skills/monero/`), the Claude and Codex plugin manifests, the OpenClaw MCP bridge (`plugins/monero/`) and these rules.
 - `docs/`: the documentation site, published by GitHub Pages from `main` at https://psyb0t.github.io/docker-monero/ (Jekyll with the just-the-docs theme). Every page needs front matter with a unique `title` and a `description` of 50 to 170 characters. Page-to-page links use the relative `.md` path; a link to a file outside `docs/` uses the full GitHub URL. `make docs` builds the site into `.testing/docs-site`. See `docs/development.md` for tests and API changes.
 
 ## Dev workflow
